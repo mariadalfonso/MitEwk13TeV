@@ -191,6 +191,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   vector<TString> fnamev;
   vector<Bool_t> isBkgv;
   fnamev.push_back(infilename); isBkgv.push_back(kFALSE);
+  fnamev.push_back("/afs/cern.ch/work/a/arapyan/public/flat_ntuples//Zmumu/ntuples/top_select.raw.root"); isBkgv.push_back(kTRUE);
 //   
   const Double_t MASS_LOW  = 60;
   const Double_t MASS_HIGH = 120;  
@@ -206,11 +207,13 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   vector<TH1D*> hPFu1v,  hPFu1Bkgv;
   vector<TH1D*> hPFu2v,  hPFu2Bkgv;
   for(Int_t ibin=0; ibin<nbins; ibin++) {
-    sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-100-ptbins[ibin],100-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
-    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",100,-100-ptbins[ibin],100-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
+
+    int range=100;
+    sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
+    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
     
-    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-100,100));    hPFu2v[ibin]->Sumw2();	       
-    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-100,100)); hPFu2Bkgv[ibin]->Sumw2();
+    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
+    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
   }
 
   vector<TH2D*> hPFu1u2v;
@@ -278,8 +281,11 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     for(Int_t ientry=0; ientry<intree->GetEntries(); ientry++) {
       intree->GetEntry(ientry);
     
-      if(category!=1 && category!=2 && category != 3)                continue;
-      if(dilep->M() < MASS_LOW || dilep->M() > MASS_HIGH)            continue;
+      // need to gain stat on the ttbar BKG
+      if(!isBkgv[ifile]) {
+	if(category!=1 && category!=2 && category != 3)                continue;
+	if(dilep->M() < MASS_LOW || dilep->M() > MASS_HIGH)            continue;
+      }
       if(lep1->Pt()        < PT_CUT  || lep2->Pt()        < PT_CUT)  continue;
       if(fabs(lep1->Eta()) > ETA_CUT || fabs(lep2->Eta()) > ETA_CUT) continue;
     
@@ -295,6 +301,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
         hPFu2Bkgv[ipt]->Fill(u2,scale1fb*lumi);
       
       } else {
+	if(infilename.Contains("data_")) lumi=1;
         hPFu1v[ipt]->Fill(u1,scale1fb*lumi);
         hPFu2v[ipt]->Fill(u2,scale1fb*lumi);
       }
@@ -336,21 +343,21 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   RooWorkspace pdfsU1("pdfsU1");
   RooWorkspace pdfsU2("pdfsU2");     
   
-  TCanvas *c = MakeCanvas("c","c",800,600);
+  TCanvas *c = MakeCanvas("c","c",800,800);
 
   // Fitting PF-MET u1
   performFit(hPFu1v, hPFu1Bkgv, ptbins, nbins, pfu1model, sigOnly,
-             c, "pfu1", "PF u_{1} [GeV]",
+             c, "pfu1", "u_{1} [GeV]",
 	     pfu1Mean,   pfu1MeanErr,
-         pfu1Mean2,  pfu1Mean2Err,
-         pfu1Mean3,  pfu1Mean3Err,
+	     pfu1Mean2,  pfu1Mean2Err,
+	     pfu1Mean3,  pfu1Mean3Err,
 	     pfu1Sigma0, pfu1Sigma0Err,
 	     pfu1Sigma1, pfu1Sigma1Err,
 	     pfu1Sigma2, pfu1Sigma2Err,
 	     pfu1Sigma3, pfu1Sigma3Err,
 	     pfu1Frac2,  pfu1Frac2Err,
 	     pfu1Frac3,  pfu1Frac3Err,
-          &pdfsU1   );
+	     &pdfsU1   );
 
           
   std::cout << "writing" << std::endl;
@@ -362,17 +369,17 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   
   // Fitting PF-MET u2         
   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
-             c, "pfu2", "PF u_{2} [GeV]",
-         pfu2Mean,   pfu2MeanErr,
-         pfu2Mean2,  pfu2Mean2Err,
-         pfu2Mean3,  pfu2Mean3Err,
-         pfu2Sigma0, pfu2Sigma0Err,
-         pfu2Sigma1, pfu2Sigma1Err,
-         pfu2Sigma2, pfu2Sigma2Err,
-         pfu2Sigma3, pfu2Sigma3Err,
-         pfu2Frac2,  pfu2Frac2Err,
-         pfu2Frac3,  pfu2Frac3Err, &pdfsU2);  
-         
+             c, "pfu2", "u_{2} [GeV]",
+	     pfu2Mean,   pfu2MeanErr,
+	     pfu2Mean2,  pfu2Mean2Err,
+	     pfu2Mean3,  pfu2Mean3Err,
+	     pfu2Sigma0, pfu2Sigma0Err,
+	     pfu2Sigma1, pfu2Sigma1Err,
+	     pfu2Sigma2, pfu2Sigma2Err,
+	     pfu2Sigma3, pfu2Sigma3Err,
+	     pfu2Frac2,  pfu2Frac2Err,
+	     pfu2Frac3,  pfu2Frac3Err, &pdfsU2);
+
   sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU2");
   pdfsU2.writeToFile(outpdfname);
 
@@ -390,6 +397,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   // Plotting PF-MET u1 vs. dilepton pT
   //
   grPFu1mean = new TGraphErrors(nbins,xval,pfu1Mean,xerr,pfu1MeanErr);
+  grPFu1mean->GetYaxis()->SetRangeUser(-350., 20.);
   grPFu1mean->SetName("grPFu1mean");
   CPlot plotPFu1mean("pfu1mean","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
   plotPFu1mean.AddGraph(grPFu1mean,"");
@@ -398,6 +406,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   plotPFu1mean.Draw(c,kTRUE,"png");
   
   grPFu1sigma1 = new TGraphErrors(nbins,xval,pfu1Sigma1,xerr,pfu1Sigma1Err);  
+  grPFu1sigma1->GetYaxis()->SetRangeUser(0., 50.);
   grPFu1sigma1->SetName("grPFu1sigma1");
   CPlot plotPFu1sigma1("pfu1sigma1","","p_{T}(ll) [GeV/c]","#sigma_{1}(u_{1}) [GeV]");
   plotPFu1sigma1.AddGraph(grPFu1sigma1,"");
@@ -408,6 +417,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   if(pfu1model>=2) {
     
     grPFu1mean2 = new TGraphErrors(nbins,xval,pfu1Mean2,xerr,pfu1Mean2Err);
+    grPFu1mean2->GetYaxis()->SetRangeUser(-350., 20.);
     grPFu1mean2->SetName("grPFu1mean2");
     CPlot plotPFu1mean2("pfu1mean2","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
     plotPFu1mean2.AddGraph(grPFu1mean2,"");
@@ -415,8 +425,8 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu1mean2.AddTextBox(chi2ndf,0.65,0.87,0.95,0.82,0,kBlack,-1);
     plotPFu1mean2.Draw(c,kTRUE,"png");
     
-    
     grPFu1sigma2 = new TGraphErrors(nbins,xval,pfu1Sigma2,xerr,pfu1Sigma2Err);    
+    grPFu1sigma2->GetYaxis()->SetRangeUser(0., 50.);
     grPFu1sigma2->SetName("grPFu1sigma2");
     CPlot plotPFu1sigma2("pfu1sigma2","","p_{T}(ll) [GeV/c]","#sigma_{2}(u_{1}) [GeV]");
     plotPFu1sigma2.AddGraph(grPFu1sigma2,"");
@@ -442,6 +452,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   
   if(pfu1model>=3) { 
     grPFu1mean3 = new TGraphErrors(nbins,xval,pfu1Mean3,xerr,pfu1Mean3Err);
+    grPFu1mean3->GetYaxis()->SetRangeUser(-350., 20.);
     grPFu1mean3->SetName("grPFu1mean3");
     CPlot plotPFu1mean3("pfu1mean3","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
     plotPFu1mean3.AddGraph(grPFu1mean3,"");
@@ -450,6 +461,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu1mean3.Draw(c,kTRUE,"png");
     
     grPFu1sigma3 = new TGraphErrors(nbins,xval,pfu1Sigma3,xerr,pfu1Sigma3Err);
+    grPFu1sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu1sigma3->SetName("grPFu1sigma3");
     CPlot plotPFu1sigma3("pfu1sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu1sigma3.AddGraph(grPFu1sigma3,"",kBlack,kOpenCircle);
@@ -466,6 +478,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   // Plotting PF-MET u2 vs. dilepton pT
   //
   grPFu2mean = new TGraphErrors(nbins,xval,pfu2Mean,xerr,pfu2MeanErr);
+  grPFu2mean->GetYaxis()->SetRangeUser(-20, 20.);
   grPFu2mean->SetName("grPFu2mean");
   CPlot plotPFu2mean("pfu2mean","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
   plotPFu2mean.AddGraph(grPFu2mean,"");
@@ -475,6 +488,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
 
   
   grPFu2sigma1 = new TGraphErrors(nbins,xval,pfu2Sigma1,xerr,pfu2Sigma1Err);
+  grPFu2sigma1->GetYaxis()->SetRangeUser(0., 30.);
   grPFu2sigma1->SetName("grPFu2sigma1");
   CPlot plotPFu2sigma1("pfu2sigma1","","p_{T}(ll) [GeV/c]","#sigma_{1}(u_{2}) [GeV]");
   plotPFu2sigma1.AddGraph(grPFu2sigma1,"");
@@ -485,6 +499,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   if(pfu2model>=2) {
     
     grPFu2mean2 = new TGraphErrors(nbins,xval,pfu2Mean2,xerr,pfu2Mean2Err);
+    grPFu2mean2->GetYaxis()->SetRangeUser(-20, 20.);
     grPFu2mean2->SetName("grPFu2mean2");
     CPlot plotPFu2mean2("pfu2mean2","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
     plotPFu2mean2.AddGraph(grPFu2mean2,"");
@@ -493,6 +508,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu2mean2.Draw(c,kTRUE,"png");
     
     grPFu2sigma2 = new TGraphErrors(nbins,xval,pfu2Sigma2,xerr,pfu2Sigma2Err);
+    grPFu2sigma2->GetYaxis()->SetRangeUser(0., 30.);
     grPFu2sigma2->SetName("grPFu2sigma2");
     CPlot plotPFu2sigma2("pfu2sigma2","","p_{T}(ll) [GeV/c]","#sigma_{2}(u_{2}) [GeV]");    
     plotPFu2sigma2.AddGraph(grPFu2sigma2,"");
@@ -520,14 +536,16 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   if(pfu2model>=3) {  
     
     grPFu2mean3 = new TGraphErrors(nbins,xval,pfu2Mean3,xerr,pfu2Mean3Err);
+    grPFu2mean3->GetYaxis()->SetRangeUser(-20, 20.);
     grPFu2mean3->SetName("grPFu2mean3");
-    CPlot plotPFu2mean3("pfu2mean2","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
+    CPlot plotPFu2mean3("pfu2mean3","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
     plotPFu2mean3.AddGraph(grPFu2mean3,"");
     plotPFu2mean3.AddGraph(grPFu2mean3,"",kBlack,kOpenCircle);
     plotPFu2mean3.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
     plotPFu2mean3.Draw(c,kTRUE,"png");
     
     grPFu2sigma3 = new TGraphErrors(nbins,xval,pfu2Sigma3,xerr,pfu2Sigma3Err);
+    grPFu2sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu2sigma3->SetName("grPFu2sigma3");
     CPlot plotPFu2sigma3("pfu2sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu2sigma3.AddGraph(grPFu2sigma3,"",kBlack,kOpenCircle);
@@ -844,6 +862,25 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
   char sig2text[50];
   char sig3text[50];
   
+  /*
+  const double ydiv = 0.25;
+  TPad *pad1 = new TPad("pad1", "",0.05,ydiv,1,1);
+  pad1->SetTickx(1);
+  pad1->SetTicky(1);
+  pad1->SetBottomMargin(0);
+  pad1->SetTopMargin(0.075);
+  pad1->Draw();
+
+  TPad *pad2 = new TPad("pad2", "",0.05,0,1,ydiv);
+  //  pad2->SetLogx(logx);
+  pad2->SetTickx(1);
+  pad2->SetTicky(1);
+  pad2->SetTopMargin(0);
+  pad2->SetBottomMargin(0.35);
+  pad2->Draw();
+  */
+
+
   for(Int_t ibin=0; ibin<nbins; ibin++) {
     
     std::stringstream name;
@@ -888,7 +925,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     name.str(""); name << "frac3_" << ibin;
     RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0,0.15);
     
-    
+
     name.str(""); name << "gauss1_" << ibin;
     RooGaussian gauss1(name.str().c_str(),name.str().c_str(),u,mean1,sigma1);
     name.str(""); name << "gauss2_" << ibin;
@@ -1043,13 +1080,24 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     
     RooArgList yields;
+
     name.str(""); name << "nsig_" << ibin;
     RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,hv[ibin]->Integral());
-    yields.add(nsig);
     name.str(""); name << "nbkg_" << ibin;
     RooRealVar nbkg(name.str().c_str(),name.str().c_str(),0.01*(hv[ibin]->Integral()),0.,0.50*(hv[ibin]->Integral()));
-    if(!sigOnly) yields.add(nbkg);
-    else         nbkg.setVal(0);
+
+    RooRealVar *lAbkgFrac =new RooRealVar("AbkgFrac","AbkgFrac",0.98,0.95,0.999);
+
+    if(sigOnly) {
+      yields.add(nsig);
+      if(!sigOnly) yields.add(nbkg);
+      else         nbkg.setVal(0);
+
+    } else {
+      RooFormulaVar * sigbkgFrac= new RooFormulaVar("bkgfrac","@0",RooArgSet(*lAbkgFrac));
+      yields.add(*sigbkgFrac);
+    }
+
     
 //     std::stringstream name;
     name.str("");  name << "modelpdf_" << ibin << std::endl;
@@ -1058,7 +1106,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     std::cout << "name = " << name.str().c_str() << std::endl;
     
     std::cout << "on bin # " << ibin << std::endl;
-    std::cout << "signal evts = " << nsig.getVal() << std::endl;
+    if(sigOnly) std::cout << "signal evts = " << nsig.getVal() << std::endl;
     std::cout << "total events = " << hv[ibin]->Integral() << std::endl;
     std::cout << "sigma1 = " << sigma1.getVal() << std::endl;
     std::cout << "sigma2 = " << sigma2.getVal() << std::endl;
@@ -1109,22 +1157,34 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     RooPlot *frame = u.frame(Bins(100));
     dataHist.plotOn(frame,MarkerStyle(kFullCircle),MarkerSize(0.8),DrawOption("ZP"));
     modelpdf.plotOn(frame);
-    if(!sigOnly) modelpdf.plotOn(frame,Components("bkg"),LineStyle(kDotted),LineColor(kMagenta+2));
+
+    if(!sigOnly) modelpdf.plotOn(frame,Components("bkg"),FillColor(kRed), DrawOption("F"));
     name.str(""); name << "gauss1_" << ibin ;
     if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kRed));
     name.str(""); name << "gauss2_" << ibin ;
-    if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kCyan+2));
+    if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kMagenta));
     name.str(""); name << "gauss3_" << ibin ;
     if(model>=3) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kGreen+2));
+    name.str(""); name << "bkg_" << ibin ;
+
+    // draw the curve
+    if(!sigOnly) modelpdf.plotOn(frame,FillColor(kGray),VisualizeError(*fitResult,1),RooFit::Components(modelpdf)); // 1 sigma band
+    if(!sigOnly) modelpdf.plotOn(frame,RooFit::LineColor(kGray+2));
+    sig.plotOn(frame,FillColor(7),VisualizeError(*fitResult,1),RooFit::Components(sig)); // 1 sigma band
+    sig.plotOn(frame,RooFit::LineColor(kBlue));
     
+    // redraw the data
+    dataHist.plotOn(frame,MarkerStyle(kFullCircle),MarkerSize(0.8),DrawOption("ZP"));
+
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
     sprintf(binlabel,"%i < p_{T} < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);    
     if(sigOnly) {
       sprintf(nsigtext,"N_{evts} = %i",(Int_t)hv[ibin]->Integral());
     } else {
-      sprintf(nsigtext,"N_{sig} = %.1f #pm %.1f",nsig.getVal(),nsig.getError());
-      sprintf(nbkgtext,"N_{bkg} = %.1f #pm %.1f",nbkg.getVal(),nbkg.getError());
+      sprintf(nsigtext,"N_{sig}/(N_{bkg}+N_{sig}) = %.3f #pm %.3f",lAbkgFrac->getVal(),lAbkgFrac->getError());
+      //      sprintf(nsigtext,"N_{sig} = %.1f #pm %.1f",nsig.getVal(),nsig.getError());
+      //      sprintf(nbkgtext,"N_{bkg} = %.1f #pm %.1f",nbkg.getVal(),nbkg.getError());
     }
     sprintf(mean1text,"#mu_{1} = %.1f #pm %.1f",mean1Arr[ibin],mean1ErrArr[ibin]);
     sprintf(sig1text,"#sigma = %.1f #pm %.1f",sigma1Arr[ibin],sigma1ErrArr[ibin]);
@@ -1134,21 +1194,36 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
       sprintf(sig1text,"#sigma_{1} = %.1f #pm %.1f",sigma1Arr[ibin],sigma1ErrArr[ibin]);          
       sprintf(sig2text,"#sigma_{2} = %.1f #pm %.1f",sigma2Arr[ibin],sigma2ErrArr[ibin]);
     }
-    if(model>3){
+    if(model>=3){
       sprintf(mean3text,"#mu_{3} = %.1f #pm %.1f",mean3Arr[ibin],mean3ErrArr[ibin]);
       sprintf(sig3text,"#sigma_{3} = %.1f #pm %.1f",sigma3Arr[ibin],sigma3ErrArr[ibin]);
     }
     
     CPlot plot(pname,frame,"",xlabel,ylabel);
+    //    pad1->cd();
     plot.AddTextBox(binlabel,0.21,0.80,0.51,0.85,0,kBlack,-1);
     if(sigOnly) plot.AddTextBox(nsigtext,0.21,0.78,0.51,0.73,0,kBlack,-1);
-    else        plot.AddTextBox(0.21,0.78,0.51,0.68,0,kBlack,-1,2,nsigtext,nbkgtext);
+    //    else        plot.AddTextBox(0.21,0.78,0.51,0.68,0,kBlack,-1,2,nsigtext,nbkgtext);
+    else        plot.AddTextBox(nsigtext,0.21,0.78,0.51,0.73,0,kBlack,-1); // this print the fraction now
     if(model==1)      plot.AddTextBox(0.70,0.90,0.95,0.80,0,kBlack,-1,2,mean1text,sig1text);
     else if(model==2) plot.AddTextBox(0.70,0.90,0.95,0.70,0,kBlack,-1,5,mean1text,mean2text,sig0text,sig1text,sig2text);
     else if(model==3) plot.AddTextBox(0.70,0.90,0.95,0.65,0,kBlack,-1,7,mean1text,mean2text,mean3text,sig0text,sig1text,sig2text,sig3text);
     plot.Draw(c,kTRUE,"png");
+
+    /*
+    pad2->cd();
+    RooHist* hist = frame->getHist(histo.Data());
+    RooHist* hist_pull = hist->makePullHist(*modelpdf);
+    hist_pull->SetTitle("");
+    hist_pull->SetMarkerColor(kAzure);
+    hist_pull->SetLineColor(kAzure);
+    hist_pull->SetFillColor(kAzure);
+    hist_pull->Draw("A3 L ");
+*/
+
     
     sprintf(pname,"%sfitlog_%i",plabel,ibin);
+    plot.SetYRange(0.1,10*hv[ibin]->GetMaximum());
     plot.SetName(pname);
     plot.SetLogy();
     plot.Draw(c,kTRUE,"png");        
@@ -1350,8 +1425,8 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
                                //RooFit::Minos(),
-                   RooFit::Strategy(2),
-                           RooFit::Save());
+			       RooFit::Strategy(2),
+			       RooFit::Save());
     
     if(sigma1.getVal() > sigma2.getVal()) {
       Double_t wide = sigma1.getVal();
@@ -1361,8 +1436,8 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
       frac2.setVal(1.0-frac2.getVal());
       fitResult = modelpdf.fitTo(dataHist,
                                  //RooFit::Minos(),
-                     RooFit::Strategy(2),
-                             RooFit::Save());
+				 RooFit::Strategy(2),
+				 RooFit::Save());
     }
     
     mean1Arr[ibin]      = mean1.getVal();
@@ -1428,11 +1503,13 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
     if(model==1)      plot.AddTextBox(0.70,0.90,0.95,0.80,0,kBlack,-1,2,mean1text,sig1text);
     else if(model==2) plot.AddTextBox(0.70,0.90,0.95,0.70,0,kBlack,-1,5,mean1text,mean2text,sig0text,sig1text,sig2text);
     else if(model==3) plot.AddTextBox(0.70,0.90,0.95,0.65,0,kBlack,-1,7,mean1text,mean2text,mean3text,sig0text,sig1text,sig2text,sig3text);
+    if(fitResult->status()>1) plot.AddTextBox(Form("status=%d",fitResult->status()),0.21,0.5,0.51,0.58,0,kRed,-1);
     plot.Draw(c,kTRUE,"png");
     
     sprintf(pname,"%sfitlog_%i",plabel,ibin);
     plot.SetName(pname);
     plot.SetLogy();
+    if(fitResult->status()>1) plot.AddTextBox(Form("status=%d",fitResult->status()),0.21,0.5,0.51,0.58,0,kRed,-1);
     plot.Draw(c,kTRUE,"png");        
   }
 }
