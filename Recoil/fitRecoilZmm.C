@@ -33,6 +33,9 @@
 #include "RooWorkspace.h"
 #include "RooFormulaVar.h"
 #include "RooRealIntegral.h"
+#include "Math/MinimizerOptions.h"
+#include "Math/Minimizer.h"
+
 #endif
 
 using namespace RooFit;
@@ -209,6 +212,8 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   for(Int_t ibin=0; ibin<nbins; ibin++) {
 
     int range=100;
+    if(ptbins[ibin]>80) range=120;
+    if(ptbins[ibin]>150) range=150;
     sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
     sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
     
@@ -444,6 +449,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu1sigma0.Draw(c,kTRUE,"png");
     
     grPFu1frac2 = new TGraphErrors(nbins,xval,pfu1Frac2, xerr,pfu1Frac2Err);
+    grPFu1frac2->GetYaxis()->SetRangeUser(0., 1.);
     grPFu1frac2->SetName("grPFu1frac2");
     CPlot plotPFu1frac2("pfu1frac2","","p_{T}(ll) [GeV/c]","f_{2}");
     plotPFu1frac2.AddGraph(grPFu1frac2,"",kBlack,kOpenCircle);
@@ -468,6 +474,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu1sigma3.Draw(c,kTRUE,"png");
   
     grPFu1frac3 = new TGraphErrors(nbins,xval,pfu1Frac3, xerr,pfu1Frac3Err);
+    grPFu1frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu1frac3->SetName("grPFu1frac3");
     CPlot plotPFu1frac3("pfu1frac3","","p_{T}(ll) [GeV/c]","f_{3}");
     plotPFu1frac3.AddGraph(grPFu1frac3,"",kBlack,kOpenCircle);
@@ -527,6 +534,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
 
     
     grPFu2frac2 = new TGraphErrors(nbins,xval,pfu2Frac2, xerr,pfu2Frac2Err);
+    grPFu1frac2->GetYaxis()->SetRangeUser(0., 1.);
     grPFu2frac2->SetName("grPFu2frac2");
     CPlot plotPFu2frac2("pfu2frac2","","p_{T}(ll) [GeV/c]","f_{2}");
     plotPFu2frac2.AddGraph(grPFu2frac2,"",kBlack,kOpenCircle);
@@ -552,6 +560,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
     plotPFu2sigma3.Draw(c,kTRUE,"png");
   
     grPFu2frac3 = new TGraphErrors(nbins,xval,pfu2Frac3, xerr,pfu2Frac3Err);
+    grPFu2frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu2frac3->SetName("grPFu2frac3");
     CPlot plotPFu2frac3("pfu2frac3","","p_{T}(ll) [GeV/c]","f_{3}");
     plotPFu2frac3.AddGraph(grPFu2frac3,"",kBlack,kOpenCircle);
@@ -606,6 +615,8 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   cout << endl;
   cout << "  <> Output saved in " << outputDir << "/" << endl;    
   cout << endl;
+
+  return;
 }
 
 
@@ -838,8 +849,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                 const Int_t model, const Bool_t sigOnly,
                 TCanvas *c, const char *plabel, const char *xlabel,
 		Double_t *mean1Arr,   Double_t *mean1ErrArr,
-        Double_t *mean2Arr,   Double_t *mean2ErrArr,
-        Double_t *mean3Arr,   Double_t *mean3ErrArr,
+		Double_t *mean2Arr,   Double_t *mean2ErrArr,
+		Double_t *mean3Arr,   Double_t *mean3ErrArr,
 		Double_t *sigma0Arr, Double_t *sigma0ErrArr,
 		Double_t *sigma1Arr, Double_t *sigma1ErrArr,
 		Double_t *sigma2Arr, Double_t *sigma2ErrArr,
@@ -894,14 +905,16 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     // Set up background histogram templates
     //
     RooDataHist bkgHist("bkgHist","bkgHist",RooArgSet(u),hbkgv[ibin]);
-    RooHistPdf bkg("bkg","bkg",u,bkgHist,0);
-    
+    //    RooHistPdf bkg("bkg","bkg",u,bkgHist,0);
+    name.str("");  name << "bkg_" << ibin << std::endl;
+    RooHistPdf bkg(name.str().c_str(),name.str().c_str(),u,bkgHist,0);name.str("");
+
     //
     // Set up fit parameters
     //
     name.str(""); name << "mean1_" << ibin;
     RooRealVar mean1(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean()*0.95,
+                    hv[ibin]->GetMean(),
                     hv[ibin]->GetXaxis()->GetXmin(),
                     hv[ibin]->GetXaxis()->GetXmax());
     name.str(""); name << "mean2_" << ibin;
@@ -911,20 +924,27 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "mean3_" << ibin;
     RooRealVar mean3(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean()*1.0,
+                    hv[ibin]->GetMean(),
                     hv[ibin]->GetXaxis()->GetXmin()+50,
                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "sigma1_" << ibin;
     RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0,1.5*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma2_" << ibin;
-    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),1.3*(hv[ibin]->GetRMS()),0,2.0*(hv[ibin]->GetRMS()));
+    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),0.8*(hv[ibin]->GetRMS()),0,2.0*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma3_" << ibin;
-    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),3.0*(hv[ibin]->GetRMS()),0,5*(hv[ibin]->GetRMS())); 
+    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),1.5*(hv[ibin]->GetRMS()),0,5*(hv[ibin]->GetRMS())); 
     name.str(""); name << "frac2_" << ibin;
     RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.15,0.85);
     name.str(""); name << "frac3_" << ibin;
     RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0,0.15);
-    
+
+    if(string(plabel)==string("pfu2")) {
+
+      mean1.setVal(0); mean1.setConstant(kTRUE);
+      mean2.setVal(0); mean2.setConstant(kTRUE);
+      mean3.setVal(0); mean3.setConstant(kTRUE);
+
+    }
 
     name.str(""); name << "gauss1_" << ibin;
     RooGaussian gauss1(name.str().c_str(),name.str().c_str(),u,mean1,sigma1);
@@ -969,6 +989,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     
     if(ibin>0) {
+      /* // stephanie settings
+
       mean1.setVal(hv[ibin]->GetMean());
       mean2.setVal(hv[ibin]->GetMean());
       mean3.setVal(hv[ibin]->GetMean());
@@ -982,7 +1004,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
       sigma3.setMin(0.0*(hv[ibin]->GetRMS()));
       sigma3.setMax(5.0*(hv[ibin]->GetRMS()));
       sigma3.setVal(1.5*(hv[ibin-1]->GetRMS()));
-      
+      */
+
 //       if(ibin==1||ibin==24||ibin==36||ibin==37||ibin==40||ibin==52||ibin==33/* || ibin==40*/){
 //         mean1.setVal(hv[ibin]->GetMean());
 //         mean2.setVal(hv[ibin]->GetMean());
@@ -1082,16 +1105,18 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     RooArgList yields;
 
     name.str(""); name << "nsig_" << ibin;
-    RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,hv[ibin]->Integral());
+    //    RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,hv[ibin]->Integral());
+    RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,1.1*hv[ibin]->Integral()); // just to be sure that doesn't it the boundary
     name.str(""); name << "nbkg_" << ibin;
-    RooRealVar nbkg(name.str().c_str(),name.str().c_str(),0.01*(hv[ibin]->Integral()),0.,0.50*(hv[ibin]->Integral()));
+    RooRealVar nbkg(name.str().c_str(),name.str().c_str(),0.01*(hv[ibin]->Integral()),0.,0.25*(hv[ibin]->Integral()));
 
     RooRealVar *lAbkgFrac =new RooRealVar("AbkgFrac","AbkgFrac",0.98,0.95,0.999);
 
     if(sigOnly) {
       yields.add(nsig);
-      if(!sigOnly) yields.add(nbkg);
-      else         nbkg.setVal(0);
+      nbkg.setVal(0);
+      //      if(!sigOnly) yields.add(nbkg);
+      //      else         nbkg.setVal(0);
 
     } else {
       RooFormulaVar * sigbkgFrac= new RooFormulaVar("bkgfrac","@0",RooArgSet(*lAbkgFrac));
@@ -1116,16 +1141,26 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     //
     // Perform fit
     //
+
+    //    ROOT::Math::MinimizerOptions::SetDefaultMaxIterations(1000000);
+
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
+			       NumCPU(4),
+			       /*Minimizer("Minuit2","minimize"),*/
 			       RooFit::Strategy(2),
 	                       RooFit::Save());
+
+    c->SetFillColor(kWhite);
+    if(fitResult->status()>1) c->SetFillColor(kYellow);
+
     if(frac2.getVal() + frac3.getVal() > 1.0) std::cout << "WRONG NORMALIZATION??? " << std::endl;
-    
     if(frac2.getVal() + frac3.getVal() > 1.0) std::cout << "WRONG NORMALIZATION??? " << std::endl;
-    
+
     wksp->import(u);
     wksp->import(modelpdf);
+    wksp->import(sig);
+    wksp->import(bkg);
     
     mean1Arr[ibin]      = mean1.getVal();
     mean1ErrArr[ibin]   = mean1.getError();
@@ -1158,7 +1193,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     dataHist.plotOn(frame,MarkerStyle(kFullCircle),MarkerSize(0.8),DrawOption("ZP"));
     modelpdf.plotOn(frame);
 
-    if(!sigOnly) modelpdf.plotOn(frame,Components("bkg"),FillColor(kRed), DrawOption("F"));
+    name.str(""); name << "bkg_" << ibin ;
+    if(!sigOnly) modelpdf.plotOn(frame,Components(bkg),FillColor(kRed), DrawOption("F"));
     name.str(""); name << "gauss1_" << ibin ;
     if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kRed));
     name.str(""); name << "gauss2_" << ibin ;
@@ -1190,6 +1226,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     sprintf(sig1text,"#sigma = %.1f #pm %.1f",sigma1Arr[ibin],sigma1ErrArr[ibin]);
     if(model>=2) {
       sprintf(mean2text,"#mu_{2} = %.1f #pm %.1f",mean2Arr[ibin],mean2ErrArr[ibin]);
+      //      sprintf(mean2text,"#mu_{2} = #mu_{1} ");
       sprintf(sig0text,"#sigma = %.1f #pm %.1f",sigma0Arr[ibin],sigma0ErrArr[ibin]);
       sprintf(sig1text,"#sigma_{1} = %.1f #pm %.1f",sigma1Arr[ibin],sigma1ErrArr[ibin]);          
       sprintf(sig2text,"#sigma_{2} = %.1f #pm %.1f",sigma2Arr[ibin],sigma2ErrArr[ibin]);
@@ -1270,7 +1307,7 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
     //
     RooDataHist bkgHist("bkgHist","bkgHist",RooArgSet(u),hbkgv[ibin]);
     RooHistPdf bkg("bkg","bkg",u,bkgHist,0);
-    
+
     //
     // Set up fit parameters
     //
@@ -1424,6 +1461,7 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
     //
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
+			       NumCPU(4),
                                //RooFit::Minos(),
 			       RooFit::Strategy(2),
 			       RooFit::Save());
@@ -1435,6 +1473,7 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
       sigma2.setVal(wide);
       frac2.setVal(1.0-frac2.getVal());
       fitResult = modelpdf.fitTo(dataHist,
+				 NumCPU(4),
                                  //RooFit::Minos(),
 				 RooFit::Strategy(2),
 				 RooFit::Save());
