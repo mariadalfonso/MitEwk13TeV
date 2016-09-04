@@ -212,13 +212,15 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   for(Int_t ibin=0; ibin<nbins; ibin++) {
 
     int range=100;
-    if(ptbins[ibin]>80) range=120;
+    if(ptbins[ibin]>80) range=125;
     if(ptbins[ibin]>150) range=150;
     sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
-    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
+    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",50,-range-ptbins[ibin],range-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
     
+    //    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
+    //    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
     sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
-    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
+    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",50,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
   }
 
   vector<TH2D*> hPFu1u2v;
@@ -1147,9 +1149,18 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
 			       NumCPU(4),
-			       /*Minimizer("Minuit2","minimize"),*/
+			       Minimizer("Minuit2","minimize"),
 			       RooFit::Strategy(2),
 	                       RooFit::Save());
+
+    if(fitResult->status()>1) {
+
+      fitResult = modelpdf.fitTo(dataHist,
+				 NumCPU(4),
+				 Minimizer("Minuit2","scan"),
+				 RooFit::Strategy(2),
+				 RooFit::Save());
+    }
 
     c->SetFillColor(kWhite);
     if(fitResult->status()>1) c->SetFillColor(kYellow);
@@ -1264,6 +1275,10 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     plot.SetName(pname);
     plot.SetLogy();
     plot.Draw(c,kTRUE,"png");        
+
+    // reset color canvas
+    c->SetFillColor(kWhite);
+
   }
 }
 
