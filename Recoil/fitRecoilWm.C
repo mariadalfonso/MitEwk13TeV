@@ -33,6 +33,8 @@
 #include "RooWorkspace.h"
 #include "RooFormulaVar.h"
 #include "RooRealIntegral.h"
+#include "Math/MinimizerOptions.h"
+#include "Math/Minimizer.h"
 #endif
 
 using namespace RooFit;
@@ -142,16 +144,17 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
 
 //=== MAIN MACRO ================================================================================================= 
 
-void fitRecoilWm3(TString infoldername,  // input ntuple
+void fitRecoilWm(TString infoldername,  // input ntuple
 		 Int_t   pfu1model,     // u1 model (1 => single Gaussian, 2 => double Gaussian, 3 => triple Gaussian)
 		 Int_t   pfu2model,     // u2 model (1 => single Gaussian, 2 => double Gaussian, 3 => triple Gaussian)
 		 Bool_t  sigOnly,       // signal event only?
 		 Int_t   charge,        // charge requirement
 		 Bool_t  useData,       // use Data? (0 = signal MC, 1 = data)
-         std::string uparName = "u1",
-         std::string uprpName = "u2",
-         std::string metName = "pf",
-		 TString outputDir ="./"     // output directory
+		 std::string uparName = "u1",
+		 std::string uprpName = "u2",
+		 std::string metName = "pf",
+		 TString outputDir ="./",     // output directory
+		 Double_t lumi=1
 ) {
 
   //--------------------------------------------------------------------------------------------------------------
@@ -203,11 +206,18 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   vector<TH1D*> hPFu1v,  hPFu1Bkgv;
   vector<TH1D*> hPFu2v,  hPFu2Bkgv;
   for(Int_t ibin=0; ibin<nbins; ibin++) {
-    sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-100-ptbins[ibin],100-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
-    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",100,-100-ptbins[ibin],100-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
+
+    int range=100;
+    if(ptbins[ibin]>80) range=125;
+    if(ptbins[ibin]>150) range=150;
+    sprintf(hname,"hPFu1_%i",ibin);    hPFu1v.push_back(new TH1D(hname,"",100,-range-ptbins[ibin],range-ptbins[ibin]));    hPFu1v[ibin]->Sumw2();
+    sprintf(hname,"hPFu1Bkg_%i",ibin); hPFu1Bkgv.push_back(new TH1D(hname,"",50,-range-ptbins[ibin],range-ptbins[ibin])); hPFu1Bkgv[ibin]->Sumw2();
+
+    //    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
+    //    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
+    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
+    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",50,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
     
-    sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-100,100));    hPFu2v[ibin]->Sumw2();	       
-    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-100,100)); hPFu2Bkgv[ibin]->Sumw2();
   }
 
   vector<TH2D*> hPFu1u2v;
@@ -297,6 +307,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     //
     // Loop over events
     //
+
     for(Int_t ientry=0; ientry<intree->GetEntries(); ientry++) {
       intree->GetEntry(ientry);
  
@@ -316,12 +327,12 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
       if(ipt<0) continue;
     
       if(isBkgv[ifile]) {
-        hPFu1Bkgv[ipt]->Fill(u1,scale1fb*2318);
-        hPFu2Bkgv[ipt]->Fill(u2,scale1fb*2318);
+        hPFu1Bkgv[ipt]->Fill(u1,scale1fb*lumi);
+        hPFu2Bkgv[ipt]->Fill(u2,scale1fb*lumi);
       
       } else {
-        hPFu1v[ipt]->Fill(u1,scale1fb*2318);
-        hPFu2v[ipt]->Fill(u2,scale1fb*2318);
+        hPFu1v[ipt]->Fill(u1,scale1fb*lumi);
+        hPFu2v[ipt]->Fill(u2,scale1fb*lumi);
       }
     }
     
@@ -361,21 +372,21 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   RooWorkspace pdfsU1("pdfsU1");
   RooWorkspace pdfsU2("pdfsU2");     
   
-  TCanvas *c = MakeCanvas("c","c",800,600);
+  TCanvas *c = MakeCanvas("c","c",800,800);
 
   // Fitting PF-MET u1
   performFit(hPFu1v, hPFu1Bkgv, ptbins, nbins, pfu1model, sigOnly,
-             c, "pfu1", "PF u_{1} [GeV]",
-         pfu1Mean,   pfu1MeanErr,
-         pfu1Mean2,  pfu1Mean2Err,
-         pfu1Mean3,  pfu1Mean3Err,
-         pfu1Sigma0, pfu1Sigma0Err,
-         pfu1Sigma1, pfu1Sigma1Err,
-         pfu1Sigma2, pfu1Sigma2Err,
-         pfu1Sigma3, pfu1Sigma3Err,
-         pfu1Frac2,  pfu1Frac2Err,
-         pfu1Frac3,  pfu1Frac3Err,
-          &pdfsU1   );
+             c, "pfu1", "u_{1} [GeV]",
+	     pfu1Mean,   pfu1MeanErr,
+	     pfu1Mean2,  pfu1Mean2Err,
+	     pfu1Mean3,  pfu1Mean3Err,
+	     pfu1Sigma0, pfu1Sigma0Err,
+	     pfu1Sigma1, pfu1Sigma1Err,
+	     pfu1Sigma2, pfu1Sigma2Err,
+	     pfu1Sigma3, pfu1Sigma3Err,
+	     pfu1Frac2,  pfu1Frac2Err,
+	     pfu1Frac3,  pfu1Frac3Err,
+	     &pdfsU1   );
 
           
   std::cout << "writing" << std::endl;
@@ -386,29 +397,17 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   pdfsU1.writeToFile(outpdfname);
   
   // Fitting PF-MET u2
-//   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
-//              c, "pfu2", "PF u_{2} [GeV]",
-// 	     pfu2Mean,   pfu2MeanErr,
-//          pfu2Mean2,  pfu2Mean2Err,
-//          pfu2Mean3,  pfu2Mean3Err,
-//          pfu2Sigma0, pfu2Sigma0Err,
-// 	     pfu2Sigma1, pfu2Sigma1Err,
-// 	     pfu2Sigma2, pfu2Sigma2Err,
-// 	     pfu2Sigma3, pfu2Sigma3Err,
-// 	     pfu2Frac2,  pfu2Frac2Err,
-// 	     pfu2Frac3,  pfu2Frac3Err, &pdfsU2);  
-         
   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
-             c, "pfu2", "PF u_{2} [GeV]",
-         pfu2Mean,   pfu2MeanErr,
-         pfu2Mean2,  pfu2Mean2Err,
-         pfu2Mean3,  pfu2Mean3Err,
-         pfu2Sigma0, pfu2Sigma0Err,
-         pfu2Sigma1, pfu2Sigma1Err,
-         pfu2Sigma2, pfu2Sigma2Err,
-         pfu2Sigma3, pfu2Sigma3Err,
-         pfu2Frac2,  pfu2Frac2Err,
-         pfu2Frac3,  pfu2Frac3Err, &pdfsU2);  
+             c, "pfu2", "u_{2} [GeV]",
+	     pfu2Mean,   pfu2MeanErr,
+	     pfu2Mean2,  pfu2Mean2Err,
+	     pfu2Mean3,  pfu2Mean3Err,
+	     pfu2Sigma0, pfu2Sigma0Err,
+	     pfu2Sigma1, pfu2Sigma1Err,
+	     pfu2Sigma2, pfu2Sigma2Err,
+	     pfu2Sigma3, pfu2Sigma3Err,
+	     pfu2Frac2,  pfu2Frac2Err,
+	     pfu2Frac3,  pfu2Frac3Err, &pdfsU2);
          
   sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU2");
   pdfsU2.writeToFile(outpdfname);
@@ -427,6 +426,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   // Plotting PF-MET u1 vs. dilepton pT
   //
   grPFu1mean = new TGraphErrors(nbins,xval,pfu1Mean,xerr,pfu1MeanErr);
+  grPFu1mean->GetYaxis()->SetRangeUser(-350., 20.);
   grPFu1mean->SetName("grPFu1mean");
   fitresPFu1mean = grPFu1mean->Fit("fcnPFu1mean","QMRN0FBSE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean->GetChisquare())/(fcnPFu1mean->GetNDF()));
@@ -450,6 +450,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   plotPFu1mean.Draw(c,kTRUE,"png");
   
   grPFu1sigma1 = new TGraphErrors(nbins,xval,pfu1Sigma1,xerr,pfu1Sigma1Err);  
+  grPFu1sigma1->GetYaxis()->SetRangeUser(0., 50.);
   grPFu1sigma1->SetName("grPFu1sigma1");
   fitresPFu1sigma1 = grPFu1sigma1->Fit("fcnPFu1sigma1","QMRN0SE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1sigma1->GetChisquare())/(fcnPFu1sigma1->GetNDF()));
@@ -467,6 +468,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   if(pfu1model>=2) {
     
     grPFu1mean2 = new TGraphErrors(nbins,xval,pfu1Mean2,xerr,pfu1Mean2Err);
+    grPFu1mean2->GetYaxis()->SetRangeUser(-350., 20.);
     grPFu1mean2->SetName("grPFu1mean2");
     fitresPFu1mean2 = grPFu1mean2->Fit("fcnPFu1mean2","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean2->GetChisquare())/(fcnPFu1mean2->GetNDF()));
@@ -482,6 +484,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     
     
     grPFu1sigma2 = new TGraphErrors(nbins,xval,pfu1Sigma2,xerr,pfu1Sigma2Err);    
+    grPFu1sigma2->GetYaxis()->SetRangeUser(0., 50.);
     grPFu1sigma2->SetName("grPFu1sigma2");
     fitresPFu1sigma2 = grPFu1sigma2->Fit("fcnPFu1sigma2","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1sigma2->GetChisquare())/(fcnPFu1sigma2->GetNDF()));    
@@ -513,6 +516,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     plotPFu1sigma0.Draw(c,kTRUE,"png");
     
     grPFu1frac2 = new TGraphErrors(nbins,xval,pfu1Frac2, xerr,pfu1Frac2Err);
+    grPFu1frac2->GetYaxis()->SetRangeUser(0., 1.);
     grPFu1frac2->SetName("grPFu1frac2");
     fcnPFu1frac2->SetParameter(0,fcnPFu1sigma0->GetParameter(0));
     fcnPFu1frac2->SetParameter(1,fcnPFu1sigma0->GetParameter(1));
@@ -534,6 +538,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   
   if(pfu1model>=3) { 
     grPFu1mean3 = new TGraphErrors(nbins,xval,pfu1Mean3,xerr,pfu1Mean3Err);
+    grPFu1mean3->GetYaxis()->SetRangeUser(-350., 20.);
     grPFu1mean3->SetName("grPFu1mean3");
     fitresPFu1mean3 = grPFu1mean3->Fit("fcnPFu1mean3","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean3->GetChisquare())/(fcnPFu1mean3->GetNDF()));
@@ -548,12 +553,14 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     plotPFu1mean3.Draw(c,kTRUE,"png");
     
     grPFu1sigma3 = new TGraphErrors(nbins,xval,pfu1Sigma3,xerr,pfu1Sigma3Err);
+    grPFu1sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu1sigma3->SetName("grPFu1sigma3");
     CPlot plotPFu1sigma3("pfu1sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu1sigma3.AddGraph(grPFu1sigma3,"",kBlack,kOpenCircle);
     plotPFu1sigma3.Draw(c,kTRUE,"png");
   
     grPFu1frac3 = new TGraphErrors(nbins,xval,pfu1Frac3, xerr,pfu1Frac3Err);
+    grPFu1frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu1frac3->SetName("grPFu1frac3");
     CPlot plotPFu1frac3("pfu1frac3","","p_{T}(ll) [GeV/c]","f_{3}");
     plotPFu1frac3.AddGraph(grPFu1frac3,"",kBlack,kOpenCircle);
@@ -564,6 +571,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   // Plotting PF-MET u2 vs. dilepton pT
   //
   grPFu2mean = new TGraphErrors(nbins,xval,pfu2Mean,xerr,pfu2MeanErr);
+  grPFu2mean->GetYaxis()->SetRangeUser(-20, 20.);
   grPFu2mean->SetName("grPFu2mean");
   fitresPFu2mean = grPFu2mean->Fit("fcnPFu2mean","QMRN0FBSE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean->GetChisquare())/(fcnPFu2mean->GetNDF()));  
@@ -579,6 +587,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
 
   
   grPFu2sigma1 = new TGraphErrors(nbins,xval,pfu2Sigma1,xerr,pfu2Sigma1Err);
+  grPFu2sigma1->GetYaxis()->SetRangeUser(0., 30.);
   grPFu2sigma1->SetName("grPFu2sigma1");
   fitresPFu2sigma1 = grPFu2sigma1->Fit("fcnPFu2sigma1","QMRN0SE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2sigma1->GetChisquare())/(fcnPFu2sigma1->GetNDF()));  
@@ -596,6 +605,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   if(pfu2model>=2) {
     
     grPFu2mean2 = new TGraphErrors(nbins,xval,pfu2Mean2,xerr,pfu2Mean2Err);
+    grPFu2mean2->GetYaxis()->SetRangeUser(-20, 20.);
     grPFu2mean2->SetName("grPFu2mean2");
     fitresPFu2mean2 = grPFu2mean2->Fit("fcnPFu2mean2","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean2->GetChisquare())/(fcnPFu2mean2->GetNDF()));  
@@ -610,6 +620,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     plotPFu2mean2.Draw(c,kTRUE,"png");
     
     grPFu2sigma2 = new TGraphErrors(nbins,xval,pfu2Sigma2,xerr,pfu2Sigma2Err);
+    grPFu2sigma2->GetYaxis()->SetRangeUser(0., 30.);
     grPFu2sigma2->SetName("grPFu2sigma2");
     fitresPFu2sigma2 = grPFu2sigma2->Fit("fcnPFu2sigma2","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2sigma2->GetChisquare())/(fcnPFu2sigma2->GetNDF()));        
@@ -642,6 +653,7 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
 
     
     grPFu2frac2 = new TGraphErrors(nbins,xval,pfu2Frac2, xerr,pfu2Frac2Err);
+    grPFu1frac2->GetYaxis()->SetRangeUser(0., 1.);
     grPFu2frac2->SetName("grPFu2frac2");
     fcnPFu2frac2->SetParameter(0,fcnPFu2sigma0->GetParameter(0));
     fcnPFu2frac2->SetParameter(1,fcnPFu2sigma0->GetParameter(1));
@@ -664,10 +676,11 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
   if(pfu2model>=3) {  
     
     grPFu2mean3 = new TGraphErrors(nbins,xval,pfu2Mean3,xerr,pfu2Mean3Err);
+    grPFu2mean3->GetYaxis()->SetRangeUser(-20, 20.);
     grPFu2mean3->SetName("grPFu2mean3");
     fitresPFu2mean3 = grPFu2mean3->Fit("fcnPFu2mean3","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean3->GetChisquare())/(fcnPFu2mean3->GetNDF()));  
-    CPlot plotPFu2mean3("pfu2mean2","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
+    CPlot plotPFu2mean3("pfu2mean3","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
     plotPFu2mean3.AddGraph(grPFu2mean3,"");
     plotPFu2mean3.AddGraph(grPFu2mean3,"",kBlack,kOpenCircle);
     plotPFu2mean3.AddFcn(fcnPFu2mean3,kRed);
@@ -678,16 +691,20 @@ void fitRecoilWm3(TString infoldername,  // input ntuple
     plotPFu2mean3.Draw(c,kTRUE,"png");
     
     grPFu2sigma3 = new TGraphErrors(nbins,xval,pfu2Sigma3,xerr,pfu2Sigma3Err);
+    grPFu2sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu2sigma3->SetName("grPFu2sigma3");
     CPlot plotPFu2sigma3("pfu2sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu2sigma3.AddGraph(grPFu2sigma3,"",kBlack,kOpenCircle);
     plotPFu2sigma3.Draw(c,kTRUE,"png");
   
     grPFu2frac3 = new TGraphErrors(nbins,xval,pfu2Frac3, xerr,pfu2Frac3Err);
+    grPFu2frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu2frac3->SetName("grPFu2frac3");
     CPlot plotPFu2frac3("pfu2frac3","","p_{T}(ll) [GeV/c]","f_{3}");
     plotPFu2frac3.AddGraph(grPFu2frac3,"",kBlack,kOpenCircle);
     plotPFu2frac3.Draw(c,kTRUE,"png");
+
+    return;
   }
 
   //
@@ -1096,7 +1113,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     //
     name.str(""); name << "mean1_" << ibin;
     RooRealVar mean1(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean()*0.95,
+                    hv[ibin]->GetMean(),
                     hv[ibin]->GetXaxis()->GetXmin(),
                     hv[ibin]->GetXaxis()->GetXmax());
     name.str(""); name << "mean2_" << ibin;
@@ -1106,21 +1123,29 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "mean3_" << ibin;
     RooRealVar mean3(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean()*1.0,
+                    hv[ibin]->GetMean(),
                     hv[ibin]->GetXaxis()->GetXmin()+50,
                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "sigma1_" << ibin;
-    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.2*(hv[ibin]->GetRMS()),0,1.5*(hv[ibin]->GetRMS()));
+    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0.5,1.5*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma2_" << ibin;
-    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),0.8*(hv[ibin]->GetRMS()),0,2.0*(hv[ibin]->GetRMS()));
+    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),0.8*(hv[ibin]->GetRMS()),0.5,2.0*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma3_" << ibin;
-    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),1.5*(hv[ibin]->GetRMS()),0,10*(hv[ibin]->GetRMS())); 
+    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),1.5*(hv[ibin]->GetRMS()),0.5,5*(hv[ibin]->GetRMS()));
     name.str(""); name << "frac2_" << ibin;
     RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.15,0.85);
     name.str(""); name << "frac3_" << ibin;
     RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0,0.15);
     
-    
+
+    if(string(plabel)==string("pfu2")) {
+
+      mean1.setVal(0); mean1.setConstant(kTRUE);
+      mean2.setVal(0); mean2.setConstant(kTRUE);
+      mean3.setVal(0); mean3.setConstant(kTRUE);
+
+    }
+
     name.str(""); name << "gauss1_" << ibin;
     RooGaussian gauss1(name.str().c_str(),name.str().c_str(),u,mean1,sigma1);
     name.str(""); name << "gauss2_" << ibin;
@@ -1144,8 +1169,10 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
 // // //       sigma3.setMax(5.0*(hv[ibin]->GetRMS()));
 //       sigma3.setVal(3.0*(hv[ibin-1]->GetRMS()));
 //     } 
-      
+
+/*
     if(ibin>0) {
+      // stephanie initial values
       mean1.setVal((hv[ibin-1]->GetMean()));
       mean2.setVal((hv[ibin-1]->GetMean()));
       mean3.setVal((hv[ibin-1]->GetMean()));
@@ -1206,6 +1233,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
 //         sigma3.setVal(4.0*(hv[ibin-1]->GetRMS()));
 //       }
     }
+*/
     
     //
     // Define formula for overall width (sigma0)
@@ -1254,7 +1282,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     RooArgList yields;
     name.str(""); name << "nsig_" << ibin;
-    RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,hv[ibin]->Integral());
+    RooRealVar nsig(name.str().c_str(),name.str().c_str(),0.98*(hv[ibin]->Integral()),0.,1.1*hv[ibin]->Integral()); // just to be sure that doesn't it the boundary
     yields.add(nsig);
     name.str(""); name << "nbkg_" << ibin;
     RooRealVar nbkg(name.str().c_str(),name.str().c_str(),0.01*(hv[ibin]->Integral()),0.,0.50*(hv[ibin]->Integral()));
@@ -1280,9 +1308,26 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     //
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
+			       NumCPU(4),
+			       Minimizer("Minuit2","minimize"),
                                //RooFit::Minos(),
 			       RooFit::Strategy(2),
 	                       RooFit::Save());
+
+
+
+    if(fitResult->status()>1) {
+
+      fitResult = modelpdf.fitTo(dataHist,
+				 NumCPU(4),
+				 Minimizer("Minuit2","scan"),
+				 RooFit::Strategy(2),
+				 RooFit::Save());
+    }
+
+    c->SetFillColor(kWhite);
+    if(fitResult->status()>1) c->SetFillColor(kYellow);
+
     std::cout << "frac 2 v1 = " << frac2.getVal() << std::endl;
     std::cout << "frac 3 v1 = " << frac3.getVal() << std::endl;
     if(frac2.getVal() + frac3.getVal() > 1.0) std::cout << "WRONG NORMALIZATION??? " << std::endl;
@@ -1348,9 +1393,16 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     name.str(""); name << "gauss1_" << ibin ;
     if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kRed));
     name.str(""); name << "gauss2_" << ibin ;
-    if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kCyan+2));
+    if(model>=2) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kMagenta));
     name.str(""); name << "gauss3_" << ibin ;
     if(model>=3) sig.plotOn(frame,Components(name.str().c_str()),LineStyle(kDashed),LineColor(kGreen+2));
+
+    // draw the curve
+    sig.plotOn(frame,FillColor(7),VisualizeError(*fitResult,1),RooFit::Components(sig)); // 1 sigma band
+    sig.plotOn(frame,RooFit::LineColor(kBlue));
+
+    // redraw the data
+    dataHist.plotOn(frame,MarkerStyle(kFullCircle),MarkerSize(0.8),DrawOption("ZP"));
     
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
@@ -1369,7 +1421,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
       sprintf(sig1text,"#sigma_{1} = %.1f #pm %.1f",sigma1Arr[ibin],sigma1ErrArr[ibin]);          
       sprintf(sig2text,"#sigma_{2} = %.1f #pm %.1f",sigma2Arr[ibin],sigma2ErrArr[ibin]);
     }
-    if(model>3){
+    if(model>=3){
       sprintf(mean3text,"#mu_{3} = %.1f #pm %.1f",mean3Arr[ibin],mean3ErrArr[ibin]);
       sprintf(sig3text,"#sigma_{3} = %.1f #pm %.1f",sigma3Arr[ibin],sigma3ErrArr[ibin]);
     }
@@ -1384,9 +1436,14 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     plot.Draw(c,kTRUE,"png");
     
     sprintf(pname,"%sfitlog_%i",plabel,ibin);
+    plot.SetYRange(0.1,10*hv[ibin]->GetMaximum());
     plot.SetName(pname);
     plot.SetLogy();
     plot.Draw(c,kTRUE,"png");        
+
+    // reset color canvas
+    c->SetFillColor(kWhite);
+
   }
 }
 
@@ -1448,7 +1505,7 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
                     hv[ibin]->GetXaxis()->GetXmax());
     RooRealVar sigma1("sigma1","sigma1",0.2*(hv[ibin]->GetRMS()),0,1.5*(hv[ibin]->GetRMS()));
     RooRealVar sigma2("sigma2","sigma2",1.2*(hv[ibin]->GetRMS()),0,2.0*(hv[ibin]->GetRMS()));
-    RooRealVar sigma3("sigma3","sigma3",3*(hv[ibin]->GetRMS()),0,10*(hv[ibin]->GetRMS())); 
+    RooRealVar sigma3("sigma3","sigma3",3*(hv[ibin]->GetRMS()),0,10*(hv[ibin]->GetRMS()));
     RooRealVar frac2("frac2","frac2",0.5,0.1,0.9);
     RooRealVar frac3("frac3","frac3",0.05,0,0.1);
     
