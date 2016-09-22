@@ -125,7 +125,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                 Double_t *sigma3Arr, Double_t *sigma3ErrArr,
                 Double_t *frac2Arr,  Double_t *frac2ErrArr,
                 Double_t *frac3Arr,  Double_t *frac3ErrArr,
-                RooWorkspace *workspace);
+                RooWorkspace *workspace,
+		int etaBinCategory);
                 
 void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_t *ptbins, const Int_t nbins,
                 const Int_t model, const Bool_t sigOnly,
@@ -154,7 +155,8 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 		 std::string uprpName = "u2",
 		 std::string metName = "pf",
 		 TString outputDir ="./",     // output directory
-		 Double_t lumi=1
+		 Double_t lumi=1,
+		 int etaBinCategory=0 // 0 is inclusive, 1 is fabs(eta)<=0.5,  2 is fabs(eta)=[0.5,1], 3 is fabs(eta)>=1
 ) {
 
   //--------------------------------------------------------------------------------------------------------------
@@ -270,7 +272,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   //
   UInt_t  runNum, lumiSec, evtNum;
   UInt_t  npv, npu;
-  Float_t genVPt, genVPhi;
+  Float_t genVPt, genVPhi, genVy;
   Float_t scale1fb, puWeight, scale1fbUp, scale1fbDown;
   Float_t met, metPhi, sumEt, mt, u1, u2;
   Int_t   q;
@@ -290,6 +292,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     intree->SetBranchAddress("npu",      &npu);       // number of in-time PU events (MC)
     intree->SetBranchAddress("genVPt",   &genVPt);    // GEN W boson pT (signal MC)
     intree->SetBranchAddress("genVPhi",  &genVPhi);   // GEN W boson phi (signal MC)   
+    intree->SetBranchAddress("genVy",    &genVy);     // GEN W boson rapidity (signal MC)
     intree->SetBranchAddress("scale1fb", &scale1fb);  // event weight per 1/fb (MC)
     intree->SetBranchAddress("scale1fbUp", &scale1fbUp);  // event weight per 1/fb (MC)
     intree->SetBranchAddress("scale1fbDown", &scale1fbDown);  // event weight per 1/fb (MC)
@@ -317,7 +320,10 @@ void fitRecoilWm(TString infoldername,  // input ntuple
       if(lep->Pt()        < PT_CUT)  continue;  
       if(fabs(lep->Eta()) > ETA_CUT) continue;
       
-//       if(fabs(genV->Eta()) > 1.0) continue;
+      // 0 is inclusive, 1 is fabs(eta)<=0.5,  2 is fabs(eta)=[0.5,1], 3 is fabs(eta)>=1
+      if(etaBinCategory==1 && fabs(genVy)>0.5) continue;
+      if(etaBinCategory==2 && (fabs(genVy)<=0.5 || fabs(genVy)>=1 )) continue;
+      if(etaBinCategory==3 && fabs(genVy)<1) continue;
     
       Int_t ipt=-1;
       for(Int_t ibin=0; ibin<nbins; ibin++) {
@@ -331,8 +337,13 @@ void fitRecoilWm(TString infoldername,  // input ntuple
         hPFu2Bkgv[ipt]->Fill(u2,scale1fb*lumi);
       
       } else {
-        hPFu1v[ipt]->Fill(u1,scale1fb*lumi);
-        hPFu2v[ipt]->Fill(u2,scale1fb*lumi);
+	hPFu1v[ipt]->Fill(u1,scale1fb*lumi);
+	hPFu2v[ipt]->Fill(u2,scale1fb*lumi);
+	//	hPFu1v[ipt]->Fill(u1,scale1fbUp*lumi);
+	//	hPFu2v[ipt]->Fill(u2,scale1fbUp*lumi);
+	//        hPFu1v[ipt]->Fill(u1,scale1fbDown*lumi);
+	//        hPFu2v[ipt]->Fill(u2,scale1fbDown*lumi);
+
       }
     }
     
@@ -386,7 +397,8 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 	     pfu1Sigma3, pfu1Sigma3Err,
 	     pfu1Frac2,  pfu1Frac2Err,
 	     pfu1Frac3,  pfu1Frac3Err,
-	     &pdfsU1   );
+	     &pdfsU1,
+	     etaBinCategory);
 
           
   std::cout << "writing" << std::endl;
@@ -407,7 +419,9 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 	     pfu2Sigma2, pfu2Sigma2Err,
 	     pfu2Sigma3, pfu2Sigma3Err,
 	     pfu2Frac2,  pfu2Frac2Err,
-	     pfu2Frac3,  pfu2Frac3Err, &pdfsU2);
+	     pfu2Frac3,  pfu2Frac3Err,
+	     &pdfsU2,
+	     etaBinCategory);
          
   sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU2");
   pdfsU2.writeToFile(outpdfname);
@@ -1069,19 +1083,21 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                 const Int_t model, const Bool_t sigOnly,
                 TCanvas *c, const char *plabel, const char *xlabel,
 		Double_t *mean1Arr,   Double_t *mean1ErrArr,
-        Double_t *mean2Arr,   Double_t *mean2ErrArr,
-        Double_t *mean3Arr,   Double_t *mean3ErrArr,
+		Double_t *mean2Arr,   Double_t *mean2ErrArr,
+		Double_t *mean3Arr,   Double_t *mean3ErrArr,
 		Double_t *sigma0Arr, Double_t *sigma0ErrArr,
 		Double_t *sigma1Arr, Double_t *sigma1ErrArr,
 		Double_t *sigma2Arr, Double_t *sigma2ErrArr,
 		Double_t *sigma3Arr, Double_t *sigma3ErrArr,
 		Double_t *frac2Arr,  Double_t *frac2ErrArr,
 		Double_t *frac3Arr,  Double_t *frac3ErrArr,
-        RooWorkspace *wksp
+		RooWorkspace *wksp,
+		int etaBinCategory
 ) {
   char pname[50];
   char ylabel[50];
   char binlabel[50];
+  char binYlabel[50];
   char nsigtext[50];
   char nbkgtext[50];
   
@@ -1407,6 +1423,9 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
     sprintf(binlabel,"%i < p_{T} < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);    
+    if(etaBinCategory==1) sprintf(binYlabel,"|y| < 0.5");
+    if(etaBinCategory==2) sprintf(binYlabel,"0.5 < |y| < 1");
+    if(etaBinCategory==3) sprintf(binYlabel,"|y| > 1");
     if(sigOnly) {
       sprintf(nsigtext,"N_{evts} = %i",(Int_t)hv[ibin]->Integral());
     } else {
@@ -1428,6 +1447,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     CPlot plot(pname,frame,"",xlabel,ylabel);
     plot.AddTextBox(binlabel,0.21,0.80,0.51,0.85,0,kBlack,-1);
+    plot.AddTextBox(binYlabel,0.21,0.85,0.51,0.9,0,kBlack,-1);
     if(sigOnly) plot.AddTextBox(nsigtext,0.21,0.78,0.51,0.73,0,kBlack,-1);
     else        plot.AddTextBox(0.21,0.78,0.51,0.68,0,kBlack,-1,2,nsigtext,nbkgtext);
     if(model==1)      plot.AddTextBox(0.70,0.90,0.95,0.80,0,kBlack,-1,2,mean1text,sig1text);
