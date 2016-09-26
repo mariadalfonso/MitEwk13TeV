@@ -229,40 +229,42 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   }
     
   TFitResultPtr fitresPFu1mean;   TF1 *fcnPFu1mean   = new TF1("fcnPFu1mean",formulaPFu1mean,0,7000);
-  TFitResultPtr fitresPFu1mean2;   TF1 *fcnPFu1mean2   = new TF1("fcnPFu1mean2",formulaPFu1mean,0,7000);
-  TFitResultPtr fitresPFu1mean3;   TF1 *fcnPFu1mean3   = new TF1("fcnPFu1mean3",formulaPFu1mean,0,7000);
+  TFitResultPtr fitresPFu1mean2;  TF1 *fcnPFu1mean2   = new TF1("fcnPFu1mean2",formulaPFu1mean,0,7000);
+  TFitResultPtr fitresPFu1mean3;  TF1 *fcnPFu1mean3   = new TF1("fcnPFu1mean3",formulaPFu1mean,0,7000);
   TFitResultPtr fitresPFu1sigma1; TF1 *fcnPFu1sigma1 = new TF1("fcnPFu1sigma1",sigmaFunc,0,7000,3);
-  TFitResultPtr fitresPFu1sigma2; TF1 *fcnPFu1sigma2 = new TF1("fcnPFu1sigma2",sigmaFunc,0,7000,3);  
-  TFitResultPtr fitresPFu1sigma0; TF1 *fcnPFu1sigma0 = new TF1("fcnPFu1sigma0",sigmaFunc,0,7000,3);    
+  TFitResultPtr fitresPFu1sigma2; TF1 *fcnPFu1sigma2 = new TF1("fcnPFu1sigma2",sigmaFunc,0,7000,3);
+  TFitResultPtr fitresPFu1sigma3; TF1 *fcnPFu1sigma3 = new TF1("fcnPFu1sigma2",sigmaFunc,0,7000,3);
+  TFitResultPtr fitresPFu1sigma0; TF1 *fcnPFu1sigma0 = new TF1("fcnPFu1sigma0",sigmaFunc,0,7000,3);
   TFitResultPtr fitresPFu1frac2;  TF1 *fcnPFu1frac2  = new TF1("fcnPFu1frac2",frac2Func,0,7000,12);
 
   TFitResultPtr fitresPFu2mean;   TF1 *fcnPFu2mean   = new TF1("fcnPFu2mean",formulaPFu2mean,0,7000);
-  TFitResultPtr fitresPFu2mean2;   TF1 *fcnPFu2mean2   = new TF1("fcnPFu2mean2",formulaPFu2mean,0,7000);
-  TFitResultPtr fitresPFu2mean3;   TF1 *fcnPFu2mean3   = new TF1("fcnPFu2mean3",formulaPFu2mean,0,7000);
-  TFitResultPtr fitresPFu2sigma1; TF1 *fcnPFu2sigma1 = new TF1("fcnPFu2sigma1",sigmaFunc,0,7000,3);  
-  TFitResultPtr fitresPFu2sigma2; TF1 *fcnPFu2sigma2 = new TF1("fcnPFu2sigma2",sigmaFunc,0,7000,3);  
-  TFitResultPtr fitresPFu2sigma0; TF1 *fcnPFu2sigma0 = new TF1("fcnPFu2sigma0",sigmaFunc,0,7000,3);  
+  TFitResultPtr fitresPFu2mean2;  TF1 *fcnPFu2mean2   = new TF1("fcnPFu2mean2",formulaPFu2mean,0,7000);
+  TFitResultPtr fitresPFu2mean3;  TF1 *fcnPFu2mean3   = new TF1("fcnPFu2mean3",formulaPFu2mean,0,7000);
+  TFitResultPtr fitresPFu2sigma1; TF1 *fcnPFu2sigma1 = new TF1("fcnPFu2sigma1",sigmaFunc,0,7000,3);
+  TFitResultPtr fitresPFu2sigma2; TF1 *fcnPFu2sigma2 = new TF1("fcnPFu2sigma2",sigmaFunc,0,7000,3);
+  TFitResultPtr fitresPFu2sigma3; TF1 *fcnPFu2sigma3 = new TF1("fcnPFu2sigma3",sigmaFunc,0,7000,3);
+  TFitResultPtr fitresPFu2sigma0; TF1 *fcnPFu2sigma0 = new TF1("fcnPFu2sigma0",sigmaFunc,0,7000,3);
   TFitResultPtr fitresPFu2frac2;  TF1 *fcnPFu2frac2  = new TF1("fcnPFu2frac2",frac2Func,0,7000,12);
 
- fcnPFu1sigma1->SetParameter(0,0); fcnPFu1sigma1->SetParLimits(0,-1e-6,1e-6);
- fcnPFu1sigma1->SetParameter(1,0.03);  fcnPFu1sigma1->SetParLimits(1,0,0.05);
- fcnPFu1sigma1->SetParameter(2,25);   fcnPFu1sigma1->SetParLimits(2,25,26);
- fcnPFu1sigma2->SetParameter(0,5e-5); fcnPFu1sigma2->SetParLimits(0,0,2e-4);
- fcnPFu1sigma2->SetParameter(1,0.06);  fcnPFu1sigma2->SetParLimits(1,-1,1);
- fcnPFu1sigma2->SetParameter(2,25);   fcnPFu1sigma2->SetParLimits(2,25,26);
-//  fcnPFu1sigma0->SetParameter(0,-2e-5); fcnPFu1sigma0->SetParLimits(0,-0.1,0.1);
-//  fcnPFu1sigma0->SetParameter(1,0.06);     fcnPFu1sigma0->SetParLimits(1,0,0.1);
-//  fcnPFu1sigma0->SetParameter(2,7);    fcnPFu1sigma0->SetParLimits(2,6,8); 
+  fcnPFu1sigma1->SetParameter(0,3);    // fcnPFu1sigma1->SetParLimits(0,-1e-6,1e-6);
+  fcnPFu1sigma1->SetParameter(1,0.2);  // fcnPFu1sigma1->SetParLimits(1,0,0.05);
+  fcnPFu1sigma1->SetParameter(2,0.001);// fcnPFu1sigma1->SetParLimits(2,25,26);
+  fcnPFu1sigma2->SetParameter(0,10);   // fcnPFu1sigma2->SetParLimits(0,0,2e-4);
+  fcnPFu1sigma2->SetParameter(1,0.2);  // fcnPFu1sigma2->SetParLimits(1,-1,1);
+  fcnPFu1sigma2->SetParameter(2,0.001);// fcnPFu1sigma2->SetParLimits(2,25,26);
+  fcnPFu1sigma3->SetParameter(0,20);   // fcnPFu1sigma3->SetParLimits(0,-0.1,0.1);
+  fcnPFu1sigma3->SetParameter(1,0.2);  // fcnPFu1sigma3->SetParLimits(1,0,0.1);
+  fcnPFu1sigma3->SetParameter(2,0.001);// fcnPFu1sigma3->SetParLimits(2,6,8);
   
- fcnPFu2sigma1->SetParameter(0,0); fcnPFu2sigma1->SetParLimits(0,-6e-6,4e-6);
- fcnPFu2sigma1->SetParameter(1,0.05);  fcnPFu2sigma1->SetParLimits(1,0,0.05);
- fcnPFu2sigma1->SetParameter(2,27);   fcnPFu2sigma1->SetParLimits(2,26.5,28);
-//  fcnPFu2sigma2->SetParameter(0,-2e-5); fcnPFu2sigma2->SetParLimits(0,-4e-4,4e-4);
-//  fcnPFu2sigma2->SetParameter(1,0.05);  fcnPFu2sigma2->SetParLimits(1,0,0.1);
-//  fcnPFu2sigma2->SetParameter(2,9.5);   fcnPFu2sigma2->SetParLimits(2,8,11);
-//  fcnPFu2sigma0->SetParameter(0,-1e-4); fcnPFu2sigma0->SetParLimits(0,-1e-3,1e-3);
-//  fcnPFu2sigma0->SetParameter(1,0.06);    fcnPFu2sigma0->SetParLimits(1,0,0.1);
-//  fcnPFu2sigma0->SetParameter(2,7);   fcnPFu2sigma0->SetParLimits(2,6,8);        
+  fcnPFu2sigma1->SetParameter(0,2);    // fcnPFu2sigma1->SetParLimits(0,-6e-6,4e-6);
+  fcnPFu2sigma1->SetParameter(1,0.05); // fcnPFu2sigma1->SetParLimits(1,0,0.05);
+  fcnPFu2sigma1->SetParameter(2,0.001);// fcnPFu2sigma1->SetParLimits(2,26.5,28);
+  fcnPFu2sigma2->SetParameter(0,10);   // fcnPFu2sigma2->SetParLimits(0,-4e-4,4e-4);
+  fcnPFu2sigma2->SetParameter(1,0.2);  // fcnPFu2sigma2->SetParLimits(1,0,0.1);
+  fcnPFu2sigma2->SetParameter(2,0.001);// fcnPFu2sigma2->SetParLimits(2,8,11);
+  fcnPFu2sigma3->SetParameter(0,20);   // fcnPFu2sigma3->SetParLimits(0,-1e-3,1e-3);
+  fcnPFu2sigma3->SetParameter(1,0.2);  // fcnPFu2sigma3->SetParLimits(1,0,0.1);
+  fcnPFu2sigma3->SetParameter(2,0.001);// fcnPFu2sigma3->SetParLimits(2,6,8);
    
   TFile *infile = 0;
   TTree *intree = 0;  
@@ -387,7 +389,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 
   // Fitting PF-MET u1
   performFit(hPFu1v, hPFu1Bkgv, ptbins, nbins, pfu1model, sigOnly,
-             c, "pfu1", "u_{1} [GeV]",
+             c, "pfu1", "u_{#parallel  } [GeV]",
 	     pfu1Mean,   pfu1MeanErr,
 	     pfu1Mean2,  pfu1Mean2Err,
 	     pfu1Mean3,  pfu1Mean3Err,
@@ -410,7 +412,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   
   // Fitting PF-MET u2
   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
-             c, "pfu2", "u_{2} [GeV]",
+             c, "pfu2", "u_{#perp  } [GeV]",
 	     pfu2Mean,   pfu2MeanErr,
 	     pfu2Mean2,  pfu2Mean2Err,
 	     pfu2Mean3,  pfu2Mean3Err,
@@ -452,7 +454,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 //  }
 //  errBand->SetPoint(nbins+1,1.2*(xval[nbins-1]),fcnPFu1mean->Eval(1.2*(xval[nbins-1])));
 //  errBand->SetPointError(nbins+1,0,dMean(fcnPFu1mean,1.2*(xval[nbins-1]),fitresPFu1mean));  
-  CPlot plotPFu1mean("pfu1mean","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
+  CPlot plotPFu1mean("pfu1mean","","p_{T}(W) [GeV/c]","#mu(u_{#parallel}) [GeV]");
   plotPFu1mean.AddGraph(grPFu1mean,"");
 //  plotPFu1mean.AddGraph(errBand,"3",kAzure-9,kFullDotSmall);
   plotPFu1mean.AddGraph(grPFu1mean,"",kBlack,kOpenCircle);
@@ -468,15 +470,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   grPFu1sigma1->SetName("grPFu1sigma1");
   fitresPFu1sigma1 = grPFu1sigma1->Fit("fcnPFu1sigma1","QMRN0SE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1sigma1->GetChisquare())/(fcnPFu1sigma1->GetNDF()));
-  CPlot plotPFu1sigma1("pfu1sigma1","","p_{T}(ll) [GeV/c]","#sigma_{1}(u_{1}) [GeV]");
+  CPlot plotPFu1sigma1("pfu1sigma1","","p_{T}(W) [GeV/c]","#sigma_{1}(u_{#parallel}) [GeV]");
   plotPFu1sigma1.AddGraph(grPFu1sigma1,"");
   plotPFu1sigma1.AddGraph(grPFu1sigma1,"",kBlack,kOpenCircle);
-  plotPFu1sigma1.AddFcn(fcnPFu1sigma1,kRed);
-  plotPFu1sigma1.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-  sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma1->GetParameter(0)),1e5*(fcnPFu1sigma1->GetParError(0))); 
-  plotPFu1sigma1.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma1->GetParameter(1),fcnPFu1sigma1->GetParError(1)); plotPFu1sigma1.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma1->GetParameter(2),fcnPFu1sigma1->GetParError(2)); plotPFu1sigma1.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+  //  plotPFu1sigma1.AddFcn(fcnPFu1sigma1,kRed);
+  //  plotPFu1sigma1.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma1->GetParameter(0)),1e5*(fcnPFu1sigma1->GetParError(0))); 
+  //  plotPFu1sigma1.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma1->GetParameter(1),fcnPFu1sigma1->GetParError(1)); plotPFu1sigma1.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma1->GetParameter(2),fcnPFu1sigma1->GetParError(2)); plotPFu1sigma1.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
   plotPFu1sigma1.Draw(c,kTRUE,"png");
   
   if(pfu1model>=2) {
@@ -486,7 +488,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu1mean2->SetName("grPFu1mean2");
     fitresPFu1mean2 = grPFu1mean2->Fit("fcnPFu1mean2","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean2->GetChisquare())/(fcnPFu1mean2->GetNDF()));
-    CPlot plotPFu1mean2("pfu1mean2","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
+    CPlot plotPFu1mean2("pfu1mean2","","p_{T}(W) [GeV/c]","#mu(u_{#parallel}) [GeV]");
     plotPFu1mean2.AddGraph(grPFu1mean2,"");
     plotPFu1mean2.AddGraph(grPFu1mean2,"",kBlack,kOpenCircle);
     plotPFu1mean2.AddFcn(fcnPFu1mean2,kRed);
@@ -502,15 +504,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu1sigma2->SetName("grPFu1sigma2");
     fitresPFu1sigma2 = grPFu1sigma2->Fit("fcnPFu1sigma2","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1sigma2->GetChisquare())/(fcnPFu1sigma2->GetNDF()));    
-    CPlot plotPFu1sigma2("pfu1sigma2","","p_{T}(ll) [GeV/c]","#sigma_{2}(u_{1}) [GeV]");
+    CPlot plotPFu1sigma2("pfu1sigma2","","p_{T}(W) [GeV/c]","#sigma_{2}(u_{#parallel}) [GeV]");
     plotPFu1sigma2.AddGraph(grPFu1sigma2,"");
     plotPFu1sigma2.AddGraph(grPFu1sigma2,"",kBlack,kOpenCircle);
-    plotPFu1sigma2.AddFcn(fcnPFu1sigma2,kRed);
-    plotPFu1sigma2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma2->GetParameter(0)),1e5*(fcnPFu1sigma2->GetParError(0))); 
-    plotPFu1sigma2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma2->GetParameter(1),fcnPFu1sigma2->GetParError(1)); plotPFu1sigma2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma2->GetParameter(2),fcnPFu1sigma2->GetParError(2)); plotPFu1sigma2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu1sigma2.AddFcn(fcnPFu1sigma2,kRed);
+    //    plotPFu1sigma2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma2->GetParameter(0)),1e5*(fcnPFu1sigma2->GetParError(0))); 
+    //    plotPFu1sigma2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma2->GetParameter(1),fcnPFu1sigma2->GetParError(1)); plotPFu1sigma2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma2->GetParameter(2),fcnPFu1sigma2->GetParError(2)); plotPFu1sigma2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu1sigma2.Draw(c,kTRUE,"png");
 
 
@@ -518,15 +520,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu1sigma0->SetName("grPFu1sigma0");
     fitresPFu1sigma0 = grPFu1sigma0->Fit("fcnPFu1sigma0","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1sigma0->GetChisquare())/(fcnPFu1sigma0->GetNDF()));    
-    CPlot plotPFu1sigma0("pfu1sigma0","","p_{T}(ll) [GeV/c]","#sigma(u_{1}) [GeV]");
+    CPlot plotPFu1sigma0("pfu1sigma0","","p_{T}(W) [GeV/c]","#sigma(u_{#parallel}) [GeV]");
     plotPFu1sigma0.AddGraph(grPFu1sigma0,"");
     plotPFu1sigma0.AddGraph(grPFu1sigma0,"",kBlack,kOpenCircle);
-    plotPFu1sigma0.AddFcn(fcnPFu1sigma0,kRed);
-    plotPFu1sigma0.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma0->GetParameter(0)),1e5*(fcnPFu1sigma0->GetParError(0)));
-    plotPFu1sigma0.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma0->GetParameter(1),fcnPFu1sigma0->GetParError(1)); plotPFu1sigma0.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma0->GetParameter(2),fcnPFu1sigma0->GetParError(2)); plotPFu1sigma0.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu1sigma0.AddFcn(fcnPFu1sigma0,kRed);
+    //    plotPFu1sigma0.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu1sigma0->GetParameter(0)),1e5*(fcnPFu1sigma0->GetParError(0)));
+    //    plotPFu1sigma0.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu1sigma0->GetParameter(1),fcnPFu1sigma0->GetParError(1)); plotPFu1sigma0.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu1sigma0->GetParameter(2),fcnPFu1sigma0->GetParError(2)); plotPFu1sigma0.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu1sigma0.Draw(c,kTRUE,"png");
     
     grPFu1frac2 = new TGraphErrors(nbins,xval,pfu1Frac2, xerr,pfu1Frac2Err);
@@ -544,7 +546,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     fcnPFu1frac2->SetParameter(9,fcnPFu1sigma2->GetParameter(1));
     fcnPFu1frac2->SetParameter(10,fcnPFu1sigma2->GetParameter(2));
     fcnPFu1frac2->SetParameter(11,fcnPFu1sigma2->GetParameter(3));
-    CPlot plotPFu1frac2("pfu1frac2","","p_{T}(ll) [GeV/c]","f_{2}");
+    CPlot plotPFu1frac2("pfu1frac2","","p_{T}(W) [GeV/c]","f_{2}");
     plotPFu1frac2.AddGraph(grPFu1frac2,"",kBlack,kOpenCircle);
     plotPFu1frac2.AddFcn(fcnPFu1frac2,kRed);
     plotPFu1frac2.Draw(c,kTRUE,"png");
@@ -556,7 +558,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu1mean3->SetName("grPFu1mean3");
     fitresPFu1mean3 = grPFu1mean3->Fit("fcnPFu1mean3","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean3->GetChisquare())/(fcnPFu1mean3->GetNDF()));
-    CPlot plotPFu1mean3("pfu1mean3","","p_{T}(ll) [GeV/c]","#mu(u_{1}) [GeV]");
+    CPlot plotPFu1mean3("pfu1mean3","","p_{T}(W) [GeV/c]","#mu(u_{#parallel}) [GeV]");
     plotPFu1mean3.AddGraph(grPFu1mean3,"");
     plotPFu1mean3.AddGraph(grPFu1mean3,"",kBlack,kOpenCircle);
     plotPFu1mean3.AddFcn(fcnPFu1mean3,kRed);
@@ -569,14 +571,14 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu1sigma3 = new TGraphErrors(nbins,xval,pfu1Sigma3,xerr,pfu1Sigma3Err);
     grPFu1sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu1sigma3->SetName("grPFu1sigma3");
-    CPlot plotPFu1sigma3("pfu1sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
+    CPlot plotPFu1sigma3("pfu1sigma3","","p_{T}(W) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu1sigma3.AddGraph(grPFu1sigma3,"",kBlack,kOpenCircle);
     plotPFu1sigma3.Draw(c,kTRUE,"png");
   
     grPFu1frac3 = new TGraphErrors(nbins,xval,pfu1Frac3, xerr,pfu1Frac3Err);
     grPFu1frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu1frac3->SetName("grPFu1frac3");
-    CPlot plotPFu1frac3("pfu1frac3","","p_{T}(ll) [GeV/c]","f_{3}");
+    CPlot plotPFu1frac3("pfu1frac3","","p_{T}(W) [GeV/c]","f_{3}");
     plotPFu1frac3.AddGraph(grPFu1frac3,"",kBlack,kOpenCircle);
     plotPFu1frac3.Draw(c,kTRUE,"png");
   }
@@ -589,14 +591,14 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   grPFu2mean->SetName("grPFu2mean");
   fitresPFu2mean = grPFu2mean->Fit("fcnPFu2mean","QMRN0FBSE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean->GetChisquare())/(fcnPFu2mean->GetNDF()));  
-  CPlot plotPFu2mean("pfu2mean","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
+  CPlot plotPFu2mean("pfu2mean","","p_{T}(W) [GeV/c]","#mu(u_{#perp}) [GeV]");
   plotPFu2mean.AddGraph(grPFu2mean,"");
   plotPFu2mean.AddGraph(grPFu2mean,"",kBlack,kOpenCircle);
-  plotPFu2mean.AddFcn(fcnPFu2mean,kRed);
-  plotPFu2mean.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-  sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(0),fcnPFu2mean->GetParError(0)); plotPFu2mean.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(1),fcnPFu2mean->GetParError(1)); plotPFu2mean.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(2),fcnPFu2mean->GetParError(2)); plotPFu2mean.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+  //  plotPFu2mean.AddFcn(fcnPFu2mean,kRed);
+  //  plotPFu2mean.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(0),fcnPFu2mean->GetParError(0)); plotPFu2mean.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(1),fcnPFu2mean->GetParError(1)); plotPFu2mean.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean->GetParameter(2),fcnPFu2mean->GetParError(2)); plotPFu2mean.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
   plotPFu2mean.Draw(c,kTRUE,"png");
 
   
@@ -605,15 +607,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   grPFu2sigma1->SetName("grPFu2sigma1");
   fitresPFu2sigma1 = grPFu2sigma1->Fit("fcnPFu2sigma1","QMRN0SE");
   sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2sigma1->GetChisquare())/(fcnPFu2sigma1->GetNDF()));  
-  CPlot plotPFu2sigma1("pfu2sigma1","","p_{T}(ll) [GeV/c]","#sigma_{1}(u_{2}) [GeV]");
+  CPlot plotPFu2sigma1("pfu2sigma1","","p_{T}(W) [GeV/c]","#sigma_{1}(u_{#perp}) [GeV]");
   plotPFu2sigma1.AddGraph(grPFu2sigma1,"");
   plotPFu2sigma1.AddGraph(grPFu2sigma1,"",kBlack,kOpenCircle);
-  plotPFu2sigma1.AddFcn(fcnPFu2sigma1,kRed);
-  plotPFu2sigma1.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-  sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma1->GetParameter(0)),1e5*(fcnPFu2sigma1->GetParError(0)));
-  plotPFu2sigma1.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma1->GetParameter(1),fcnPFu2sigma1->GetParError(1)); plotPFu2sigma1.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma1->GetParameter(2),fcnPFu2sigma1->GetParError(2)); plotPFu2sigma1.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+  //  plotPFu2sigma1.AddFcn(fcnPFu2sigma1,kRed);
+  //  plotPFu2sigma1.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma1->GetParameter(0)),1e5*(fcnPFu2sigma1->GetParError(0)));
+  //  plotPFu2sigma1.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma1->GetParameter(1),fcnPFu2sigma1->GetParError(1)); plotPFu2sigma1.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+  //  sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma1->GetParameter(2),fcnPFu2sigma1->GetParError(2)); plotPFu2sigma1.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
   plotPFu2sigma1.Draw(c,kTRUE,"png");
 
   if(pfu2model>=2) {
@@ -623,14 +625,14 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu2mean2->SetName("grPFu2mean2");
     fitresPFu2mean2 = grPFu2mean2->Fit("fcnPFu2mean2","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean2->GetChisquare())/(fcnPFu2mean2->GetNDF()));  
-    CPlot plotPFu2mean2("pfu2mean2","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
+    CPlot plotPFu2mean2("pfu2mean2","","p_{T}(W) [GeV/c]","#mu(u_{#perp}) [GeV]");
     plotPFu2mean2.AddGraph(grPFu2mean2,"");
     plotPFu2mean2.AddGraph(grPFu2mean2,"",kBlack,kOpenCircle);
-    plotPFu2mean2.AddFcn(fcnPFu2mean2,kRed);
-    plotPFu2mean2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(0),fcnPFu2mean2->GetParError(0)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(1),fcnPFu2mean2->GetParError(1)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(2),fcnPFu2mean2->GetParError(2)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu2mean2.AddFcn(fcnPFu2mean2,kRed);
+    //    plotPFu2mean2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(0),fcnPFu2mean2->GetParError(0)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(1),fcnPFu2mean2->GetParError(1)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean2->GetParameter(2),fcnPFu2mean2->GetParError(2)); plotPFu2mean2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu2mean2.Draw(c,kTRUE,"png");
     
     grPFu2sigma2 = new TGraphErrors(nbins,xval,pfu2Sigma2,xerr,pfu2Sigma2Err);
@@ -638,15 +640,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu2sigma2->SetName("grPFu2sigma2");
     fitresPFu2sigma2 = grPFu2sigma2->Fit("fcnPFu2sigma2","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2sigma2->GetChisquare())/(fcnPFu2sigma2->GetNDF()));        
-    CPlot plotPFu2sigma2("pfu2sigma2","","p_{T}(ll) [GeV/c]","#sigma_{2}(u_{2}) [GeV]");    
+    CPlot plotPFu2sigma2("pfu2sigma2","","p_{T}(W) [GeV/c]","#sigma_{2}(u_{#perp}) [GeV]");
     plotPFu2sigma2.AddGraph(grPFu2sigma2,"");
     plotPFu2sigma2.AddGraph(grPFu2sigma2,"",kBlack,kOpenCircle);
-    plotPFu2sigma2.AddFcn(fcnPFu2sigma2,kRed);
-    plotPFu2sigma2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma2->GetParameter(0)),1e5*(fcnPFu2sigma2->GetParError(0)));
-    plotPFu2sigma2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma2->GetParameter(1),fcnPFu2sigma2->GetParError(1)); plotPFu2sigma2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma2->GetParameter(2),fcnPFu2sigma2->GetParError(2)); plotPFu2sigma2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu2sigma2.AddFcn(fcnPFu2sigma2,kRed);
+    //    plotPFu2sigma2.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma2->GetParameter(0)),1e5*(fcnPFu2sigma2->GetParError(0)));
+    //    plotPFu2sigma2.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma2->GetParameter(1),fcnPFu2sigma2->GetParError(1)); plotPFu2sigma2.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma2->GetParameter(2),fcnPFu2sigma2->GetParError(2)); plotPFu2sigma2.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu2sigma2.Draw(c,kTRUE,"png");
 
 
@@ -654,15 +656,15 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu2sigma0->SetName("grPFu2sigma0");
     fitresPFu2sigma0 = grPFu2sigma0->Fit("fcnPFu2sigma0","QMRN0SE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2sigma0->GetChisquare())/(fcnPFu2sigma0->GetNDF()));    
-    CPlot plotPFu2sigma0("pfu2sigma0","","p_{T}(ll) [GeV/c]","#sigma(u_{2}) [GeV]");
+    CPlot plotPFu2sigma0("pfu2sigma0","","p_{T}(W) [GeV/c]","#sigma(u_{#perp}) [GeV]");
     plotPFu2sigma0.AddGraph(grPFu2sigma0,"");
     plotPFu2sigma0.AddGraph(grPFu2sigma0,"",kBlack,kOpenCircle);
-    plotPFu2sigma0.AddFcn(fcnPFu2sigma0,kRed);
-    plotPFu2sigma0.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma0->GetParameter(0)),1e5*(fcnPFu2sigma0->GetParError(0)));
-    plotPFu2sigma0.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma0->GetParameter(1),fcnPFu2sigma0->GetParError(1)); plotPFu2sigma0.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma0->GetParameter(2),fcnPFu2sigma0->GetParError(2)); plotPFu2sigma0.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu2sigma0.AddFcn(fcnPFu2sigma0,kRed);
+    //    plotPFu2sigma0.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = (%.1f #pm %.1f) #times 10^{-5}",1e5*(fcnPFu2sigma0->GetParameter(0)),1e5*(fcnPFu2sigma0->GetParError(0)));
+    //    plotPFu2sigma0.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2sigma0->GetParameter(1),fcnPFu2sigma0->GetParError(1)); plotPFu2sigma0.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2sigma0->GetParameter(2),fcnPFu2sigma0->GetParError(2)); plotPFu2sigma0.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu2sigma0.Draw(c,kTRUE,"png");
 
     
@@ -681,7 +683,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     fcnPFu2frac2->SetParameter(9,fcnPFu2sigma2->GetParameter(1));
     fcnPFu2frac2->SetParameter(10,fcnPFu2sigma2->GetParameter(2));
     fcnPFu2frac2->SetParameter(11,fcnPFu2sigma2->GetParameter(3));
-    CPlot plotPFu2frac2("pfu2frac2","","p_{T}(ll) [GeV/c]","f_{2}");
+    CPlot plotPFu2frac2("pfu2frac2","","p_{T}(W) [GeV/c]","f_{2}");
     plotPFu2frac2.AddFcn(fcnPFu2frac2,kRed);
     plotPFu2frac2.AddGraph(grPFu2frac2,"",kBlack,kOpenCircle);
     plotPFu2frac2.Draw(c,kTRUE,"png");
@@ -694,27 +696,27 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     grPFu2mean3->SetName("grPFu2mean3");
     fitresPFu2mean3 = grPFu2mean3->Fit("fcnPFu2mean3","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu2mean3->GetChisquare())/(fcnPFu2mean3->GetNDF()));  
-    CPlot plotPFu2mean3("pfu2mean3","","p_{T}(ll) [GeV/c]","#mu(u_{2}) [GeV]");
+    CPlot plotPFu2mean3("pfu2mean3","","p_{T}(W) [GeV/c]","#mu(u_{#perp}) [GeV]");
     plotPFu2mean3.AddGraph(grPFu2mean3,"");
     plotPFu2mean3.AddGraph(grPFu2mean3,"",kBlack,kOpenCircle);
-    plotPFu2mean3.AddFcn(fcnPFu2mean3,kRed);
-    plotPFu2mean3.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
-    sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(0),fcnPFu2mean3->GetParError(0)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
-    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(1),fcnPFu2mean3->GetParError(1)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
-    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(2),fcnPFu2mean3->GetParError(2)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
+    //    plotPFu2mean3.AddFcn(fcnPFu2mean3,kRed);
+    //    plotPFu2mean3.AddTextBox(chi2ndf,0.21,0.87,0.41,0.82,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{0} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(0),fcnPFu2mean3->GetParError(0)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.80,0.51,0.75,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{1} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(1),fcnPFu2mean3->GetParError(1)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.75,0.51,0.70,0,kBlack,-1);
+    //    sprintf(fitparam,"p_{2} = %.3f #pm %.3f",fcnPFu2mean3->GetParameter(2),fcnPFu2mean3->GetParError(2)); plotPFu2mean3.AddTextBox(fitparam,0.21,0.70,0.51,0.65,0,kBlack,-1);
     plotPFu2mean3.Draw(c,kTRUE,"png");
     
     grPFu2sigma3 = new TGraphErrors(nbins,xval,pfu2Sigma3,xerr,pfu2Sigma3Err);
     grPFu2sigma3->GetYaxis()->SetRangeUser(0., 150.);
     grPFu2sigma3->SetName("grPFu2sigma3");
-    CPlot plotPFu2sigma3("pfu2sigma3","","p_{T}(ll) [GeV/c]","#sigma_{3} [GeV]");
+    CPlot plotPFu2sigma3("pfu2sigma3","","p_{T}(W) [GeV/c]","#sigma_{3} [GeV]");
     plotPFu2sigma3.AddGraph(grPFu2sigma3,"",kBlack,kOpenCircle);
     plotPFu2sigma3.Draw(c,kTRUE,"png");
   
     grPFu2frac3 = new TGraphErrors(nbins,xval,pfu2Frac3, xerr,pfu2Frac3Err);
     grPFu2frac3->GetYaxis()->SetRangeUser(0., 1.);
     grPFu2frac3->SetName("grPFu2frac3");
-    CPlot plotPFu2frac3("pfu2frac3","","p_{T}(ll) [GeV/c]","f_{3}");
+    CPlot plotPFu2frac3("pfu2frac3","","p_{T}(W) [GeV/c]","f_{3}");
     plotPFu2frac3.AddGraph(grPFu2frac3,"",kBlack,kOpenCircle);
     plotPFu2frac3.Draw(c,kTRUE,"png");
 
@@ -789,7 +791,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 
   TH1D *hCorrPFu1u2 = new TH1D("hCorrPFu1u2","",ncorrbins,corrbins);
   for(Int_t ibin=0; ibin<ncorrbins; ibin++) { hCorrPFu1u2->SetBinContent(ibin+1,hPFu1u2v[ibin]->GetCorrelationFactor()); }
-  CPlot plotCorrPFu1u2("corrpfu1u2","","p_{T}(ll) [GeV/c]","corr(PF u_{1}, PF u_{2})");
+  CPlot plotCorrPFu1u2("corrpfu1u2","","p_{T}(W) [GeV/c]","corr(PF u_{#parallel}, PF u_{#perp})");
   plotCorrPFu1u2.AddHist1D(hCorrPFu1u2,"");
   plotCorrPFu1u2.Draw(c,kTRUE,"png");
   
@@ -1422,7 +1424,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
-    sprintf(binlabel,"%i < p_{T} < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);    
+    sprintf(binlabel,"%i < p_{T}(W) < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);
     if(etaBinCategory==1) sprintf(binYlabel,"|y| < 0.5");
     if(etaBinCategory==2) sprintf(binYlabel,"0.5 < |y| < 1");
     if(etaBinCategory==3) sprintf(binYlabel,"|y| > 1");
@@ -1725,7 +1727,7 @@ void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Doubl
     
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
-    sprintf(binlabel,"%i < p_{T} < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);    
+    sprintf(binlabel,"%i < p_{T}(W) < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);
     if(sigOnly) {
       sprintf(nsigtext,"N_{evts} = %i",(Int_t)hv[ibin]->Integral());
     } else {
