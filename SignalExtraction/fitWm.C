@@ -181,31 +181,36 @@ void fitWm(const TString  outputDir,   // output directory
 
 //   // for Puppi
   RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorr->loadRooWorkspacesMC("../Recoil/WmpMC_newBacon/");
+  recoilCorr->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmpMCPuppi/");
+  recoilCorr->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorr->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
   
   RecoilCorrector *recoilCorrm = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorrm->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorrm->loadRooWorkspacesMC("../Recoil/WmmMC_newBacon/");
+  recoilCorrm->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmmMCPuppi/");
+  recoilCorrm->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorrm->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
   
   // pileup up
   RecoilCorrector *recoilCorrUp = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorrUp->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorrUp->loadRooWorkspacesMC("../Recoil/WmpMCPuppi_PileupUp/");
+  recoilCorrUp->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmpMCPuppi_PileupUp/");
+  recoilCorrUp->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorrUp->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
   
   RecoilCorrector *recoilCorrmUp = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorrmUp->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorrmUp->loadRooWorkspacesMC("../Recoil/WmmMCPuppi_PileupUp/");
+  recoilCorrmUp->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmmMCPuppi_PileupUp/");
+  recoilCorrmUp->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorrmUp->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
   
   // pileup down
   RecoilCorrector *recoilCorrDown = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorrDown->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorrDown->loadRooWorkspacesMC("../Recoil/WmpMCPuppi_PileupDown/");
-  
+  recoilCorrDown->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmpMCPuppi_PileupDown/");
+  recoilCorrDown->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorrDown->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
+
   RecoilCorrector *recoilCorrmDown = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorrmDown->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  recoilCorrmDown->loadRooWorkspacesMC("../Recoil/WmmMCPuppi_PileupDown/");
-  
+  recoilCorrmDown->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/www/WZ/sept4/WmmMCPuppi_PileupDown/");
+  recoilCorrmDown->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmDataPuppi_bkg/");
+  recoilCorrmDown->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/www/WZ/sept28/ZmmMCPuppi/");
  
   
   // ----------------------------------------------------

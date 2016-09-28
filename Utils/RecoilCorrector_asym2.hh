@@ -52,6 +52,7 @@ public:
   RecoilCorrector(string iNameZDat, int iSeed=0xDEADBEEF);
   RecoilCorrector(string iNameZDat1, string iPrefix, int iSeed=0xDEADBEEF);
     
+  void loadRooWorkspacesMCtoCorrect(string iNameFile);
   void loadRooWorkspacesMC(string iNameFile);
   void loadRooWorkspacesData(string iNameFile);
   
@@ -212,6 +213,7 @@ protected:
   
   RooWorkspace* rooWData[2];
   RooWorkspace* rooWMC[2];
+  RooWorkspace* rooWMCtoCorr[2];
   RooWorkspace* pdfsU1zData, pdfsU2zData;
   RooWorkspace* pdfsU1zMC, pdfsU2zMC;
   RooWorkspace* pdfsU1sigMC, pdfsU2sigMC;
@@ -269,6 +271,7 @@ void RecoilCorrector::loadRooWorkspacesData(std::string iFName){
     rooWData[1]->import(*cdfU2, RooFit::Silence());
   }
 }
+
 void RecoilCorrector::loadRooWorkspacesMC(std::string iFName){
   TFile *lFile  = new TFile((iFName+"pdfsU1.root").c_str());
   rooWMC[0] = (RooWorkspace*) lFile->Get("pdfsU1");
@@ -290,6 +293,30 @@ void RecoilCorrector::loadRooWorkspacesMC(std::string iFName){
     rooWMC[1]->import(*cdfU2, RooFit::Silence());
   }
 }
+
+void RecoilCorrector::loadRooWorkspacesMCtoCorrect(std::string iFName){
+  TFile *lFile  = new TFile((iFName+"pdfsU1.root").c_str());
+  rooWMCtoCorr[0] = (RooWorkspace*) lFile->Get("pdfsU1");
+  lFile->Delete();
+  TFile *lFile2  = new TFile((iFName+"pdfsU2.root").c_str());
+  rooWMCtoCorr[1] = (RooWorkspace*) lFile2->Get("pdfsU2");
+  lFile2->Delete();
+  for(uint i = 0; i < vZPtBins.size()-1; ++i){
+    std::stringstream name;
+    name << "sig_" << i;
+    RooAbsPdf* pdf1 = rooWMCtoCorr[0]->pdf(name.str().c_str());
+    RooAbsPdf* pdf2 = rooWMCtoCorr[1]->pdf(name.str().c_str());
+    name.str(""); name << "u_" << i;
+    RooRealVar* myX1 = (RooRealVar*) rooWMCtoCorr[0]->var(name.str().c_str());
+    RooRealVar* myX2 = (RooRealVar*) rooWMCtoCorr[1]->var(name.str().c_str());
+    RooAbsReal *cdfU1 = pdf1->createCdf(*myX1);
+    rooWMCtoCorr[0]->import(*cdfU1, RooFit::Silence());
+    RooAbsReal *cdfU2 = pdf2->createCdf(*myX2);
+    rooWMCtoCorr[1]->import(*cdfU2, RooFit::Silence());
+  }
+}
+
+
 
 void RecoilCorrector::addDataFile(std::string iNameData) {
   readRecoil(fD1U1Fit,fD1U1RMSSMFit,fD1U1RMS1Fit,fD1U1RMS2Fit,fD1U2Fit,fD1U2RMSSMFit,fD1U2RMS1Fit,fD1U2RMS2Fit,iNameData,"fcnPF",0);
@@ -788,15 +815,15 @@ void RecoilCorrector::metDistributionInvCdf(double &iMet,double &iMPhi,double iG
   double pU   = sqrt(pUX*pUX+pUY*pUY);
   double pCos = - (pUX*cos(iGenPhi) + pUY*sin(iGenPhi))/pU;
   double pSin =   (pUX*sin(iGenPhi) - pUY*cos(iGenPhi))/pU;
-  double pU1   = pU*pCos; // U1 in data
-  double pU2   = pU*pSin; // U2 in data
-  double pU1Diff  = pU1-pDefU1; // subtract the mean1 from MC?
-//   double pU1Diff2  = pU1-pDefU1_2; // subtract the mean2 also from MC?
-//   double pU1MeanDiff = pDefU1-pDefU1_2;
-  double pU2Diff  = pU2; // don't care because expect mean to be ~0
-  double p1Charge        = pU1Diff/fabs(pU1Diff);
-  double p2Charge        = pU2Diff/fabs(pU2Diff);
-  double pTU1Diff        = pU1Diff;
+  double pU1  = pU*pCos; // U1 in sample to Correct (WMC or ZMC)
+  double pU2  = pU*pSin; // U2 in sample to Correct (WMC or ZMC)
+  //  double pU1Diff  = pU1-pDefU1; // subtract the mean1 from MC?            // not used
+  //  double pU1Diff2  = pU1-pDefU1_2; // subtract the mean2 also from MC?
+  //  double pU1MeanDiff = pDefU1-pDefU1_2;
+  //  double pU2Diff  = pU2; // don't care because expect mean to be ~0       // not used
+  //  double p1Charge        = pU1Diff/fabs(pU1Diff);                     // not used
+  //  double p2Charge        = pU2Diff/fabs(pU2Diff);                     // not used
+  //  double pTU1Diff        = pU1Diff;                                   // not used
 
   
   
@@ -805,31 +832,51 @@ void RecoilCorrector::metDistributionInvCdf(double &iMet,double &iMPhi,double iG
   RooAbsPdf *thisPdfDataU1 = rooWData[0]->pdf(name.str().c_str()); name.str("");
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfMCU1 = rooWMC[0]->pdf(name.str().c_str()); name.str("");
+  name << "sig_" << iBin;
+  RooAbsPdf *thisPdfMCU1toCorr = rooWMCtoCorr[0]->pdf(name.str().c_str()); name.str("");
+
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfDataU1 = rooWData[0]->function(name.str().c_str()); name.str("");
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfMCU1 = rooWMC[0]->function(name.str().c_str()); name.str("");
+  name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+  RooAbsReal *thisCdfMCU1toCorr = rooWMCtoCorr[0]->function(name.str().c_str()); name.str("");
+
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfDataU2 = rooWData[1]->pdf(name.str().c_str()); name.str("");
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfMCU2 = rooWMC[1]->pdf(name.str().c_str()); name.str("");
+  name << "sig_" << iBin;
+  RooAbsPdf *thisPdfMCU2toCorr = rooWMCtoCorr[1]->pdf(name.str().c_str()); name.str("");
+
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfDataU2 = rooWData[1]->function(name.str().c_str()); name.str("");
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfMCU2 = rooWMC[1]->function(name.str().c_str()); name.str("");
+  name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+  RooAbsReal *thisCdfMCU2toCorr = rooWMCtoCorr[1]->function(name.str().c_str()); name.str("");
   
   std::stringstream varName;
   varName.str("");varName << "u_"<<iBin;
   RooRealVar* myXdU1 =  (RooRealVar*) rooWData[0]->var(varName.str().c_str());
   RooRealVar* myXmU1 =  (RooRealVar*) rooWMC[0]->var(varName.str().c_str());
+  RooRealVar* myXmcU1 =  (RooRealVar*) rooWMCtoCorr[0]->var(varName.str().c_str());
   RooRealVar* myXdU2 =  (RooRealVar*) rooWData[1]->var(varName.str().c_str());
   RooRealVar* myXmU2 =  (RooRealVar*) rooWMC[1]->var(varName.str().c_str());
+  RooRealVar* myXmcU2 =  (RooRealVar*) rooWMCtoCorr[1]->var(varName.str().c_str());
   
-  double pU1ValD = triGausInvGraphPDF(pU1,iGenPt,thisCdfMCU1,thisCdfDataU1,thisPdfMCU1,thisPdfDataU1,myXdU1,myXmU1,iBin,pDefU1);
-  double pU2ValD = triGausInvGraphPDF(pU2,iGenPt,thisCdfMCU2,thisCdfDataU2,thisPdfMCU2,thisPdfDataU2,myXdU2,myXmU2,iBin,0);
+  // invert the target MC (W/Z) to the (ZMC)
+  // for the closure on Z events: this step should give pU1ValMzlike=pU1
+  double pU1ValMzlike = triGausInvGraphPDF(pU1,iGenPt,thisCdfMCU1toCorr,thisCdfMCU1,thisPdfMCU1toCorr,thisPdfMCU1,myXmU1,myXmcU1,iBin,pDefU1);
+  double pU2ValMzlike = triGausInvGraphPDF(pU2,iGenPt,thisCdfMCU2toCorr,thisCdfMCU2,thisPdfMCU2toCorr,thisPdfMCU2,myXmU2,myXmcU2,iBin,0);
 
-  pU1   = /*pDefU1             +*/ pU1ValD;
-  pU2   =                      pU2ValD;
+  // invert the target MC (Z) to the (ZDATA)
+  double pU1ValDzlike = triGausInvGraphPDF(pU1ValMzlike,iGenPt,thisCdfMCU1,thisCdfDataU1,thisPdfMCU1,thisPdfDataU1,myXdU1,myXmU1,iBin,pDefU1);
+  double pU2ValDzlike = triGausInvGraphPDF(pU2ValMzlike,iGenPt,thisCdfMCU2,thisCdfDataU2,thisPdfMCU2,thisPdfDataU2,myXdU2,myXmU2,iBin,0);
+
+  // have the newW recoil as WrecoilMC + Difference in Zdata/MC
+  pU1   = pU1 + ( pU1ValDzlike - pU1ValMzlike);
+  pU2   = pU2 + ( pU2ValDzlike - pU2ValMzlike);
   iMet  = calculate(0,iLepPt,iLepPhi,iGenPhi,pU1,pU2);
   iMPhi = calculate(1,iLepPt,iLepPhi,iGenPhi,pU1,pU2);
   
