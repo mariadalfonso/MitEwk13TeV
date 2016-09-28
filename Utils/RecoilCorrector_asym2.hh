@@ -599,7 +599,9 @@ double RecoilCorrector::triGausInvGraphPDF(double iPVal, double Zpt, RooAbsReal 
 // std::cout << "-------" << std::endl;
 // std::cout << "ipval " << iPVal << std::endl;
 // std::cout << "max " << max << std::endl;
-  if(TMath::Abs(iPVal-max)>=400) return iPVal;
+// this should be in synch with the recoil fits
+// now binning with -100,100 http://dalfonso.web.cern.ch/dalfonso/WZ/sept28/ZmmMCPuppi/plots/pfu2fit_10.png
+  if(TMath::Abs(iPVal-max)>=100) return iPVal;
   myXm->setVal(iPVal);
   double pVal=pdfDATAcdf->findRoot(*myXd,myXd->getMin(),myXd->getMax(),pdfMCcdf->getVal());
 //   std::cout << "pVal " << pVal << std::endl;
