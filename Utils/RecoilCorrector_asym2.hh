@@ -224,7 +224,8 @@ protected:
   RooWorkspace rooWksDataU2;
   RooWorkspace rooWksMCU2;
   
-  std::vector<double> vZPtBins;
+  std::vector<double> vZPtBins ={0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
+
 //   Double_t vZPtBins[] = {0,1,2.5,5.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,77.5,80,82.5,85,87.5,90,92.5,95,97.5,100};
 // int nZPtBins = sizeof(vZPtBins)/sizeof(Double_t)-1;
 
@@ -249,7 +250,6 @@ RecoilCorrector::RecoilCorrector(string iNameZ, int iSeed) {
 //-----------------------------------------------------------------------------------------------------------------------------------------
 
 void RecoilCorrector::loadRooWorkspacesData(std::string iFName){
-  vZPtBins ={0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
   
   TFile *lFile  = new TFile((iFName+"pdfsU1.root").c_str());
   rooWData[0] = (RooWorkspace*) lFile->Get("pdfsU1");
@@ -270,6 +270,7 @@ void RecoilCorrector::loadRooWorkspacesData(std::string iFName){
     RooAbsReal *cdfU2 = pdf2->createCdf(*myX2);
     rooWData[1]->import(*cdfU2, RooFit::Silence());
   }
+  std::cout << "Loaded WorkspacesDATA "<< std::endl;
 }
 
 void RecoilCorrector::loadRooWorkspacesMC(std::string iFName){
@@ -292,6 +293,7 @@ void RecoilCorrector::loadRooWorkspacesMC(std::string iFName){
     RooAbsReal *cdfU2 = pdf2->createCdf(*myX2);
     rooWMC[1]->import(*cdfU2, RooFit::Silence());
   }
+  std::cout << "Loaded WorkspacesMC "<< std::endl;
 }
 
 void RecoilCorrector::loadRooWorkspacesMCtoCorrect(std::string iFName){
@@ -314,6 +316,7 @@ void RecoilCorrector::loadRooWorkspacesMCtoCorrect(std::string iFName){
     RooAbsReal *cdfU2 = pdf2->createCdf(*myX2);
     rooWMCtoCorr[1]->import(*cdfU2, RooFit::Silence());
   }
+  std::cout << "Loaded WorkspacesMCtoCorrec "<< std::endl;
 }
 
 
