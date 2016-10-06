@@ -159,11 +159,25 @@ void fitZm(const TString  outputDir,   // output directory
   rochcor2015 *rmcor = new rochcor2015();
 
 // // Puppi Corrections
-  RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  //recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon/");
-  //recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_MARIAbkgTest/");
-  recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_bkg_old/");
-  recoilCorr->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_old/");
+  RecoilCorrector *recoilCorr = new  RecoilCorrector("","");
+  recoilCorr->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi/");
+  recoilCorr->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg/");
+  recoilCorr->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi/");
+
+  RecoilCorrector *recoilCorr_c = new  RecoilCorrector("","");
+  recoilCorr_c->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05/");
+  recoilCorr_c->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap05//");
+  recoilCorr_c->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05/");
+
+  RecoilCorrector *recoilCorr_t = new  RecoilCorrector("","");
+  recoilCorr_t->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05-1/");
+  recoilCorr_t->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap05-1/");
+  recoilCorr_t->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05-1/");
+
+  RecoilCorrector *recoilCorr_f = new  RecoilCorrector("","");
+  recoilCorr_f->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap1/");
+  recoilCorr_f->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap1/");
+  recoilCorr_f->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap1/");
 
 //   RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPF/fits_pf.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
 //   recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPF/");
@@ -619,11 +633,16 @@ void fitZm(const TString  outputDir,   // output directory
 		if(genVPt > hh_diff->GetBinLowEdge(i) && genVPt < hh_diff->GetBinLowEdge(i+1)){ bin = i; break; }
 	      }
 	      double w2 = 1.0;//hh_diff->GetBinContent(bin);
-	      
-//              recoilCorr->CorrectType2FromGraph(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-//            if(dl.Eta() < 1.0)recoilCorr1->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-//            if(dl.Eta() > 1.0)recoilCorr2->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+
+	      /*
+	      //MARIA: to use the eta binned recoil
+	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      */
+
               recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+
 	      //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
               double pUX  = corrMet*cos(corrMetPhi) + dl.Pt()*cos(dl.Phi());
@@ -843,9 +862,9 @@ void fitZm(const TString  outputDir,   // output directory
 
   combine_workspace.writeToFile("Zmumu_pdfTemplates.root");
 
-  RooFitResult *fitRes = pdfMet.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));//dataTotal.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));
+  //  RooFitResult *fitRes = pdfMet.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));//dataTotal.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));
   RooFitResult *fitResp = pdfMetp.fitTo(dataMetp,Extended(),Minos(kTRUE),Save(kTRUE)); 
-  RooFitResult *fitResm = pdfMetm.fitTo(dataMetm,Extended(),Minos(kTRUE),Save(kTRUE));
+  //  RooFitResult *fitResm = pdfMetm.fitTo(dataMetm,Extended(),Minos(kTRUE),Save(kTRUE));
  
   // Use histogram version of fitted PDFs to make ratio plots
   // (Will also use PDF histograms later for Chi^2 and KS tests)
@@ -1150,7 +1169,8 @@ void fitZm(const TString  outputDir,   // output directory
   
   plotMet.SetName("fitmetlog");
   plotMet.SetLogy();
-  plotMet.SetYRange(1e-3*(hDataMet->GetMaximum()),10*(hDataMet->GetMaximum()));
+  plotMet.SetYRange(1e-4*(hDataMetp->GetMaximum()),10*(hDataMetp->GetMaximum()));
+  //  plotMet.SetYRange(1e-3*(hDataMet->GetMaximum()),10*(hDataMet->GetMaximum()));
   plotMet.Draw(c,kTRUE,format,1);
    
 
@@ -1270,18 +1290,20 @@ void fitZm(const TString  outputDir,   // output directory
   txtfile << setprecision(10);
   txtfile << " *** Yields *** " << endl;
   txtfile << "Selected: " << hDataMet->Integral() << endl;
-  txtfile << "  Signal: " << nSig.getVal() << " +/- " << nSig.getPropagatedError(*fitRes) << endl;
+  //  txtfile << "  Signal: " << nSig.getVal() << " +/- " << nSig.getPropagatedError(*fitRes) << endl;
   //txtfile << "     QCD: " << nQCD.getVal() << " +/- " << nQCD.getPropagatedError(*fitRes) << endl;
-  txtfile << "   Other: " << nEWK.getVal() << " +/- " << nEWK.getPropagatedError(*fitRes) << endl;
+  //  txtfile << "   Other: " << nEWK.getVal() << " +/- " << nEWK.getPropagatedError(*fitRes) << endl;
   txtfile << endl;
   txtfile.flags(flags);
-  
+
+  /*  
   fitRes->printStream(txtfile,RooPrintable::kValue,RooPrintable::kVerbose);
   txtfile << endl;
   printCorrelations(txtfile, fitRes);
   txtfile << endl;
   printChi2AndKSResults(txtfile, chi2prob, chi2ndf, ksprob, ksprobpe);
   txtfile.close();
+  */
   
   chi2prob = hDataMetp->Chi2Test(hPdfMetp,"PUW");
   chi2ndf  = hDataMetp->Chi2Test(hPdfMetp,"CHI2/NDFUW");
