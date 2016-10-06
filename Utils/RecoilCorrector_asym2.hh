@@ -297,6 +297,7 @@ void RecoilCorrector::loadRooWorkspacesMC(std::string iFName){
 }
 
 void RecoilCorrector::loadRooWorkspacesMCtoCorrect(std::string iFName){
+
   TFile *lFile  = new TFile((iFName+"pdfsU1.root").c_str());
   rooWMCtoCorr[0] = (RooWorkspace*) lFile->Get("pdfsU1");
   lFile->Delete();
@@ -604,7 +605,11 @@ double RecoilCorrector::triGausInvGraphPDF(double iPVal, double Zpt, RooAbsReal 
 // std::cout << "max " << max << std::endl;
 // this should be in synch with the recoil fits
 // now binning with -100,100 http://dalfonso.web.cern.ch/dalfonso/WZ/sept28/ZmmMCPuppi/plots/pfu2fit_10.png
-  if(TMath::Abs(iPVal-max)>=100) return iPVal;
+//  std::cout << " MIN=" << myXm->getMin() << " MAX=" << myXm->getMax() << std::endl;
+
+  if(iPVal< myXm->getMin()) return iPVal;
+  if(iPVal> myXm->getMax()) return iPVal;
+
   myXm->setVal(iPVal);
   double pVal=pdfDATAcdf->findRoot(*myXd,myXd->getMin(),myXd->getMax(),pdfMCcdf->getVal());
 //   std::cout << "pVal " << pVal << std::endl;
@@ -794,7 +799,7 @@ void RecoilCorrector::metDistributionInvCdf(double &iMet,double &iMPhi,double iG
                        TGraphErrors *iU1Default,
                        double &iU1,double &iU2,double iFluc,double iScale) {
   
-  double pDefU1    = iU1Default->Eval(iGenPt);
+  //  double pDefU1    = iU1Default->Eval(iGenPt);
 
   double iGenPt2 = 0;
   Int_t nbinsPt = vZPtBins.size()-1;
@@ -872,11 +877,11 @@ void RecoilCorrector::metDistributionInvCdf(double &iMet,double &iMPhi,double iG
   
   // invert the target MC (W/Z) to the (ZMC)
   // for the closure on Z events: this step should give pU1ValMzlike=pU1
-  double pU1ValMzlike = triGausInvGraphPDF(pU1,iGenPt,thisCdfMCU1toCorr,thisCdfMCU1,thisPdfMCU1toCorr,thisPdfMCU1,myXmU1,myXmcU1,iBin,pDefU1);
+  double pU1ValMzlike = triGausInvGraphPDF(pU1,iGenPt,thisCdfMCU1toCorr,thisCdfMCU1,thisPdfMCU1toCorr,thisPdfMCU1,myXmU1,myXmcU1,iBin,0);
   double pU2ValMzlike = triGausInvGraphPDF(pU2,iGenPt,thisCdfMCU2toCorr,thisCdfMCU2,thisPdfMCU2toCorr,thisPdfMCU2,myXmU2,myXmcU2,iBin,0);
 
   // invert the target MC (Z) to the (ZDATA)
-  double pU1ValDzlike = triGausInvGraphPDF(pU1ValMzlike,iGenPt,thisCdfMCU1,thisCdfDataU1,thisPdfMCU1,thisPdfDataU1,myXdU1,myXmU1,iBin,pDefU1);
+  double pU1ValDzlike = triGausInvGraphPDF(pU1ValMzlike,iGenPt,thisCdfMCU1,thisCdfDataU1,thisPdfMCU1,thisPdfDataU1,myXdU1,myXmU1,iBin,0);
   double pU2ValDzlike = triGausInvGraphPDF(pU2ValMzlike,iGenPt,thisCdfMCU2,thisCdfDataU2,thisPdfMCU2,thisPdfDataU2,myXdU2,myXmU2,iBin,0);
 
   // have the newW recoil as WrecoilMC + Difference in Zdata/MC
