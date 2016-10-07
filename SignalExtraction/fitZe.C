@@ -157,33 +157,29 @@ void fitZe(const TString  outputDir,   // output directory
   const TString format("png"); 
   //  rochcor2015 *rmcor = new rochcor2015();
 
-// // Puppi Corrections
-  RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_bkg_old/");
-  recoilCorr->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_old/");
-  
-  RecoilCorrector *recoilCorr051 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorr051->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_bkg_rap05-1/");
-  recoilCorr051->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_rap05-1/");
+  const TString directory("/afs/cern.ch/user/d/dalfonso/public/WZ/oct7");
 
-  RecoilCorrector *recoilCorr1 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-  recoilCorr1->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_bkg_rap1/");
-  recoilCorr1->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_rap1/");
+  // Puppi Corrections
+  RecoilCorrector *recoilCorr = new  RecoilCorrector("","");
+  recoilCorr->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi/",directory.Data()));
+  recoilCorr->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg/",directory.Data()));
+  recoilCorr->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi/",directory.Data()));
 
-//   RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPF/fits_pf.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPF/");
-//   recoilCorr->loadRooWorkspacesMC("../Recoil/ZmmMCPF/");
-  
-//   RecoilCorrector *recoilCorr1 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon_eta1/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr1->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon_eta1/");
-//   recoilCorr1->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_newBacon_eta1/");
-// 
-//   
-//   RecoilCorrector *recoilCorr2 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon_eta2/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr2->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon_eta2/");
-//   recoilCorr2->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_newBacon_eta2/");
-  
-     
+  RecoilCorrector *recoilCorr_c = new  RecoilCorrector("","");
+  recoilCorr_c->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
+  recoilCorr_c->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05/",directory.Data()));
+  recoilCorr_c->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
+
+  RecoilCorrector *recoilCorr_t = new  RecoilCorrector("","");
+  recoilCorr_t->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap05-1/",directory.Data()));
+  recoilCorr_t->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05-1/",directory.Data()));
+  recoilCorr_t->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05-1/",directory.Data()));
+
+  RecoilCorrector *recoilCorr_f = new  RecoilCorrector("","");
+  recoilCorr_f->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
+  recoilCorr_f->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap1/",directory.Data()));
+  recoilCorr_f->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
+
   // Load the Z data and Z MC Pt spectra
   TFile *_rat1 = new TFile("shapeDiff/zmm_PDFUnc.root");
   TH1D *hh_mc;// = new TH1D("hh_diff","hh_diff",75,0,150);
@@ -546,18 +542,15 @@ void fitZe(const TString  outputDir,   // output directory
 	      if(genVPt > hh_diff->GetBinLowEdge(i) && genVPt < hh_diff->GetBinLowEdge(i+1)){ bin = i; break; }
 	    }
 
-	    //if(fabs(genVy)<0.5)
-	    //std::cout << genVy << std::endl;
-	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
-	      //else if (fabs(genVy)>=0.5 && fabs(genVy)<1.0)
-	      // recoilCorr051->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
-	      //else
-	      //recoilCorr1->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
 	    double w2 = 1.0;//hh_diff->GetBinContent(bin);
-	    //              recoilCorr->CorrectType2FromGraph(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	    //            if(dl.Eta() < 1.0)recoilCorr1->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	    //            if(dl.Eta() > 1.0)recoilCorr2->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	    //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+
+	    //MARIA: to use the eta binned recoil
+	    if(fabs(dilep->Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	    if(fabs(dilep->Eta())>=0.5 && fabs(dilep->Eta())<=1 ) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	    if(fabs(dilep->Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+
+	    //	    recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+
 	      //     recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
               double pUX  = corrMet*cos(corrMetPhi) + dilep->Pt()*cos(dilep->Phi());
@@ -764,9 +757,9 @@ void fitZe(const TString  outputDir,   // output directory
 
   combine_workspace.writeToFile("Zmumu_pdfTemplates.root");
 
-  RooFitResult *fitRes = pdfMet.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));//dataTotal.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));
+  //  RooFitResult *fitRes = pdfMet.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));//dataTotal.fitTo(dataMet,Extended(),Minos(kTRUE),Save(kTRUE));
   RooFitResult *fitResp = pdfMetp.fitTo(dataMetp,Extended(),Minos(kTRUE),Save(kTRUE)); 
-  RooFitResult *fitResm = 0;//pdfMetm.fitTo(dataMetm,Extended(),Minos(kTRUE),Save(kTRUE));
+  //  RooFitResult *fitResm = 0;//pdfMetm.fitTo(dataMetm,Extended(),Minos(kTRUE),Save(kTRUE));
  
   // Use histogram version of fitted PDFs to make ratio plots
   // (Will also use PDF histograms later for Chi^2 and KS tests)
@@ -1192,18 +1185,20 @@ void fitZe(const TString  outputDir,   // output directory
   txtfile << setprecision(10);
   txtfile << " *** Yields *** " << endl;
   txtfile << "Selected: " << hDataMet->Integral() << endl;
-  txtfile << "  Signal: " << nSig.getVal() << " +/- " << nSig.getPropagatedError(*fitRes) << endl;
+  //  txtfile << "  Signal: " << nSig.getVal() << " +/- " << nSig.getPropagatedError(*fitRes) << endl;
   //txtfile << "     QCD: " << nQCD.getVal() << " +/- " << nQCD.getPropagatedError(*fitRes) << endl;
-  txtfile << "   Other: " << nEWK.getVal() << " +/- " << nEWK.getPropagatedError(*fitRes) << endl;
+  //  txtfile << "   Other: " << nEWK.getVal() << " +/- " << nEWK.getPropagatedError(*fitRes) << endl;
   txtfile << endl;
   txtfile.flags(flags);
-  
+
+  /*
   fitRes->printStream(txtfile,RooPrintable::kValue,RooPrintable::kVerbose);
   txtfile << endl;
   printCorrelations(txtfile, fitRes);
   txtfile << endl;
   printChi2AndKSResults(txtfile, chi2prob, chi2ndf, ksprob, ksprobpe);
   txtfile.close();
+  */
   
   chi2prob = hDataMetp->Chi2Test(hPdfMetp,"PUW");
   chi2ndf  = hDataMetp->Chi2Test(hPdfMetp,"CHI2/NDFUW");

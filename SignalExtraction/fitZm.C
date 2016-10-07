@@ -158,40 +158,28 @@ void fitZm(const TString  outputDir,   // output directory
   const TString format("png"); 
   rochcor2015 *rmcor = new rochcor2015();
 
+  const TString directory("/afs/cern.ch/user/d/dalfonso/public/WZ/oct7");
+
 // // Puppi Corrections
   RecoilCorrector *recoilCorr = new  RecoilCorrector("","");
-  recoilCorr->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi/");
-  recoilCorr->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg/");
-  recoilCorr->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi/");
+  recoilCorr->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi/",directory.Data()));
+  recoilCorr->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg/",directory.Data()));
+  recoilCorr->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi/",directory.Data()));
 
   RecoilCorrector *recoilCorr_c = new  RecoilCorrector("","");
-  recoilCorr_c->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05/");
-  recoilCorr_c->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap05//");
-  recoilCorr_c->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05/");
+  recoilCorr_c->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
+  recoilCorr_c->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05/",directory.Data()));
+  recoilCorr_c->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
 
   RecoilCorrector *recoilCorr_t = new  RecoilCorrector("","");
-  recoilCorr_t->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05-1/");
-  recoilCorr_t->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap05-1/");
-  recoilCorr_t->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap05-1/");
+  recoilCorr_t->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap05-1/",directory.Data()));
+  recoilCorr_t->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05-1/",directory.Data()));
+  recoilCorr_t->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05-1/",directory.Data()));
 
   RecoilCorrector *recoilCorr_f = new  RecoilCorrector("","");
-  recoilCorr_f->loadRooWorkspacesMCtoCorrect("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap1/");
-  recoilCorr_f->loadRooWorkspacesData("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmDataPuppi_bkg_rap1/");
-  recoilCorr_f->loadRooWorkspacesMC("/afs/cern.ch/user/d/dalfonso/public/WZ/oct2/ZmmMCPuppi_rap1/");
-
-//   RecoilCorrector *recoilCorr = new  RecoilCorrector("../Recoil/ZmmMCPF/fits_pf.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr->loadRooWorkspacesData("../Recoil/ZmmDataPF/");
-//   recoilCorr->loadRooWorkspacesMC("../Recoil/ZmmMCPF/");
-  
-//   RecoilCorrector *recoilCorr1 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon_eta1/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr1->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon_eta1/");
-//   recoilCorr1->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_newBacon_eta1/");
-// 
-//   
-//   RecoilCorrector *recoilCorr2 = new  RecoilCorrector("../Recoil/ZmmMCPuppi_newBacon_eta2/fits_puppi.root","fcnPF"); // get tgraph from here? what i guess its mean so it doesn't matter?
-//   recoilCorr2->loadRooWorkspacesData("../Recoil/ZmmDataPuppi_newBacon_eta2/");
-//   recoilCorr2->loadRooWorkspacesMC("../Recoil/ZmmMCPuppi_newBacon_eta2/");
-  
+  recoilCorr_f->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
+  recoilCorr_f->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap1/",directory.Data()));
+  recoilCorr_f->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
 
     
   // Load the Z data and Z MC Pt spectra
@@ -634,14 +622,12 @@ void fitZm(const TString  outputDir,   // output directory
 	      }
 	      double w2 = 1.0;//hh_diff->GetBinContent(bin);
 
-	      /*
 	      //MARIA: to use the eta binned recoil
 	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	      */
 
-              recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      //              recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 
 	      //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);

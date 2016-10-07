@@ -183,7 +183,10 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
 //   Double_t ptbins[] = {5,10,20,30,40,50};
 //   
   // specify your desired pT binning here. Currently using very narrow bins
-  Double_t ptbins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
+  // oct2 binning below
+  //  Double_t ptbins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
+  // oct7 binning below
+  Double_t ptbins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,65,70,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
   Int_t nbins = sizeof(ptbins)/sizeof(Double_t)-1;
 
   Double_t corrbins[] = { 0, 10, 30, 50 };
@@ -505,6 +508,7 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   if(pfu1model>=3) { 
     grPFu1mean3 = new TGraphErrors(nbins,xval,pfu1Mean3,xerr,pfu1Mean3Err);
     grPFu1mean3->GetYaxis()->SetRangeUser(-350., 20.);
+    //    grPFu1mean3->GetYaxis()->SetRangeUser(0., 2.);
     grPFu1mean3->SetName("grPFu1mean3");
     fitresPFu1mean3 = grPFu1mean3->Fit("fcnPFu1mean3","QMRN0FBSE");
     sprintf(chi2ndf,"#chi^{2}/ndf = %.2f",(fcnPFu1mean3->GetChisquare())/(fcnPFu1mean3->GetNDF()));
@@ -931,6 +935,9 @@ void makeHTML(const TString outDir,  const Int_t nbins,
   htmlfile << "</body>" << endl;
   htmlfile << "</html>" << endl;
   htmlfile.close(); 
+
+  return;
+
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -1011,20 +1018,28 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "mean2_" << ibin;
     RooRealVar mean2(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean(),
-		    hv[ibin]->GetXaxis()->GetXmin()+50,
-                    hv[ibin]->GetXaxis()->GetXmax()-50);
+		     hv[ibin]->GetMean(),
+		     hv[ibin]->GetXaxis()->GetXmin()+50,
+		     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "mean3_" << ibin;
     RooRealVar mean3(name.str().c_str(),name.str().c_str(),
-		    hv[ibin]->GetMean()*0.85,
-                    hv[ibin]->GetXaxis()->GetXmin()+50,
-                    hv[ibin]->GetXaxis()->GetXmax()-50);
+		      hv[ibin]->GetMean()*0.85,
+		      hv[ibin]->GetXaxis()->GetXmin()+50,
+		      hv[ibin]->GetXaxis()->GetXmax()-50);
+    //    RooRealVar mean3f(name.str().c_str(),name.str().c_str(),
+    //		     0.85,
+    //		     0.6,
+    //		     1.1);
+
+    //    RooFormulaVar * mean3= new RooFormulaVar("meanFrac","@0 * @1",RooArgSet(mean1,mean3f));
+
     name.str(""); name << "sigma1_" << ibin;
-    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0,1.5*(hv[ibin]->GetRMS()));
+    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0,2.3*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma2_" << ibin;
     RooRealVar sigma2(name.str().c_str(),name.str().c_str(),1.0*(hv[ibin]->GetRMS()),0.,4.5*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma3_" << ibin;
-    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),0.,9*(hv[ibin]->GetRMS()));
+    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),0,9*hv[ibin]->GetRMS());
+    //    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),10 ,std::min(int(9*hv[ibin]->GetRMS()),100));
     name.str(""); name << "frac2_" << ibin;
     RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.15,0.85);
     name.str(""); name << "frac3_" << ibin;
@@ -1369,7 +1384,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     if(model==1)      plot.AddTextBox(0.70,0.90,0.95,0.80,0,kBlack,-1,2,mean1text,sig1text);
     else if(model==2) plot.AddTextBox(0.70,0.90,0.95,0.70,0,kBlack,-1,5,mean1text,mean2text,sig0text,sig1text,sig2text);
     //    else if(model==3) plot.AddTextBox(0.70,0.90,0.95,0.65,0,kBlack,-1,7,mean1text,mean2text,mean3text,sig0text,sig1text,sig2text,sig3text);
-    else if(model==3) plot.AddTextBox(0.70,0.90,0.95,0.65,0,kBlack,-1,7,mean1text,mean2text,mean3text,sig1text,sig2text,sig3text);
+    else if(model==3) plot.AddTextBox(0.70,0.90,0.95,0.65,0,kBlack,-1,6,mean1text,mean2text,mean3text,sig1text,sig2text,sig3text);
     plot.Draw(c,kTRUE,"png");
 
     /*
@@ -1394,6 +1409,9 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     c->SetFillColor(kWhite);
 
   }
+
+  return;
+
 }
 
 void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_t *ptbins, const Int_t nbins,
