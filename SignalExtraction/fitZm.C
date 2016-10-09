@@ -134,6 +134,9 @@ void fitZm(const TString  outputDir,   // output directory
 ) {
   gBenchmark->Start("fitZm");
 
+  bool doRecoilplot=false;
+
+
   //--------------------------------------------------------------------------------------------------------------
   // Settings 
   //==============================================================================================================   
@@ -563,8 +566,8 @@ void fitZm(const TString  outputDir,   // output directory
 	  double pUX  = met*cos(metPhi) + (mu1+mu2).Pt()*cos((mu1+mu2).Phi());
 	  double pUY  = met*sin(metPhi) + (mu1+mu2).Pt()*sin((mu1+mu2).Phi());
 	  double pU   = sqrt(pUX*pUX+pUY*pUY);
-          hDataMetp->Fill(met); 
-	  //hDataMetp->Fill(pU); 
+          if(doRecoilplot) hDataMetp->Fill(pU);
+          if(!doRecoilplot) hDataMetp->Fill(met);
           hU1vsZpt_rsp->Fill(dilep->Pt(),u1/dilep->Pt());
           hU1vsZpt->Fill(dilep->Pt(),u1);
           hU2vsZpt->Fill(dilep->Pt(),u2);
@@ -624,10 +627,10 @@ void fitZm(const TString  outputDir,   // output directory
 
 	      //MARIA: to use the eta binned recoil
 	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 
-	      //              recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      //	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
 
 	      //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
@@ -649,12 +652,14 @@ void fitZm(const TString  outputDir,   // output directory
               
 	      if(typev[ifile]==eWmunu)
 		{
-		  hWmunuMetp->Fill(corrMet,weight*w2); 
+		  if(!doRecoilplot) hWmunuMetp->Fill(corrMet,weight*w2);
+		  if(doRecoilplot) hWmunuMetp->Fill(pU,weight*w2);
 		  corrMet=met, corrMetPhi=metPhi;
 		}
 	      else
 		{
-		  hEWKMetp->Fill(corrMet,weight);
+		  if(!doRecoilplot) hEWKMetp->Fill(corrMet,weight);
+		  if(doRecoilplot) hEWKMetp->Fill(pU,weight);
 		  corrMet=met, corrMetPhi=metPhi;
 		}
               //hWmunuMetp->Fill(corrMet,weight*w2); 
@@ -690,6 +695,9 @@ void fitZm(const TString  outputDir,   // output directory
         }
         if(typev[ifile]==eEWK) {
 	  Double_t corrMet=met, corrMetPhi=metPhi;
+	  double pUX  = corrMet*cos(corrMetPhi) + dilep->Pt()*cos(dilep->Phi());
+	  double pUY  = corrMet*sin(corrMetPhi) + dilep->Pt()*sin(dilep->Phi());
+	  double pU   = sqrt(pUX*pUX+pUY*pUY);
           if(lep1->Pt()        < PT_CUT)  continue;
           if(lep2->Pt()        < PT_CUT)  continue;
           if(dilep->M()        < MASS_LOW)  continue;
@@ -701,11 +709,8 @@ void fitZm(const TString  outputDir,   // output directory
 	  //   hEWKMetp->Fill(corrMet,weight); 
 	  //  }
 	  if(q1*q2<0) { 
-	    double pUX  = corrMet*cos(corrMetPhi) + dilep->Pt()*cos(dilep->Phi());
-	    double pUY  = corrMet*sin(corrMetPhi) + dilep->Pt()*sin(dilep->Phi());
-	    double pU   = sqrt(pUX*pUX+pUY*pUY);
-	    hEWKMetp->Fill(met,weight); 
-	    //hEWKMetp->Fill(pU,weight); 
+	    if(!doRecoilplot) hEWKMetp->Fill(met,weight);
+	    if(doRecoilplot) hEWKMetp->Fill(pU,weight);
 	  }
           else    { hEWKMetm->Fill(met,weight); }
         }
@@ -1193,7 +1198,10 @@ void fitZm(const TString  outputDir,   // output directory
   //plotMetp.SetYRange(0.1,5000);
   plotMetp.Draw(c,kFALSE,format,1);
 
-  CPlot plotMetpDiff("fitmetp","","#slash{E}_{T} [GeV]","#frac{Data-Pred}{Data}");
+
+  TString titleX="#slash{E}_{T} [GeV]";
+  if(doRecoilplot) titleX="Recoil  [GeV]";
+  CPlot plotMetpDiff("fitmetp","",titleX.Data(),"#frac{Data-Pred}{Data}");
   plotMetpDiff.AddHist1D(hMetpDiff,"EX0",ratioColor);
   plotMetpDiff.SetYRange(-0.2,0.2);
   plotMetpDiff.AddLine(0, 0,METMAX, 0,kBlack,1);
