@@ -452,8 +452,6 @@ void fitZm(const TString  outputDir,   // output directory
       Double_t effdata, effmc;
       Double_t corr=1;
 
-      //met =-met;  
-//       if(lep->Pt()        < PT_CUT)  continue;	
       if(fabs(lep1->Eta()) > ETA_CUT) continue;
       if(fabs(lep2->Eta()) > ETA_CUT) continue;
       
@@ -563,8 +561,9 @@ void fitZm(const TString  outputDir,   // output directory
       
         hDataMet->Fill(met);
         if(q1*q2<0) {
-	  double pUX  = met*cos(metPhi) + (mu1+mu2).Pt()*cos((mu1+mu2).Phi());
-	  double pUY  = met*sin(metPhi) + (mu1+mu2).Pt()*sin((mu1+mu2).Phi());
+	  // met and dilepton do not have muon/scale correction
+	  double pUX  = met*cos(metPhi) + dilep->Pt()*cos(dilep->Phi());
+	  double pUY  = met*sin(metPhi) + dilep->Pt()*sin(dilep->Phi());
 	  double pU   = sqrt(pUX*pUX+pUY*pUY);
           if(doRecoilplot) hDataMetp->Fill(pU);
           if(!doRecoilplot) hDataMetp->Fill(met);
@@ -610,12 +609,12 @@ void fitZm(const TString  outputDir,   // output directory
           dl=l1+l2;
           double mll=dl.M();
         
-          if(lep1->Pt()        < PT_CUT)  continue;
-          if(lep2->Pt()        < PT_CUT)  continue;
+          if(l1.Pt()        < PT_CUT)  continue;
+          if(l2.Pt()        < PT_CUT)  continue;
           if(mll        < MASS_LOW)  continue;
           if(mll        > MASS_HIGH) continue;
 
-//           
+	  //
           hWmunuMet->Fill(corrMet,weight);
           if(q1*q2<0) {
               pU1 = 0; pU2 = 0;
@@ -625,23 +624,23 @@ void fitZm(const TString  outputDir,   // output directory
 	      }
 	      double w2 = 1.0;//hh_diff->GetBinContent(bin);
 
-	      //MARIA: to use the eta binned recoil
-	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-
-	      //	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
+	      //MARIA: to use the eta binned recoil, passing met and dileptonPt not corrected for lepton scale
+	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      //	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
 
 	      //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
-              double pUX  = corrMet*cos(corrMetPhi) + dl.Pt()*cos(dl.Phi());
-              double pUY  = corrMet*sin(corrMetPhi) + dl.Pt()*sin(dl.Phi());
+              double pUX  = corrMet*cos(corrMetPhi) + dilep->Pt()*cos(dilep->Phi());
+              double pUY  = corrMet*sin(corrMetPhi) + dilep->Pt()*sin(dilep->Phi());
               double pU   = sqrt(pUX*pUX+pUY*pUY);
+	      // projected on the corrected Z
               double pCos = - (pUX*cos(dl.Phi()) + pUY*sin(dl.Phi()))/pU;
               double pSin =   (pUX*sin(dl.Phi()) - pUY*cos(dl.Phi()))/pU;
               pU1   = pU*pCos; // U1 in data
               pU2   = pU*pSin; // U2 in data
-          
+
               hU1vsZpt_rsp_MC_raw->Fill(dilep->Pt(),u1/dilep->Pt(),weight);
               hU1vsZpt_MC_raw->Fill(dilep->Pt(),u1,weight);
               hU2vsZpt_MC_raw->Fill(dilep->Pt(),u2,weight);
@@ -694,6 +693,7 @@ void fitZm(const TString  outputDir,   // output directory
           else    { hAntiWmunuMetm->Fill(corrMet,weight); }
         }
         if(typev[ifile]==eEWK) {
+	  // met and dilepton do not have muon/scale correction
 	  Double_t corrMet=met, corrMetPhi=metPhi;
 	  double pUX  = corrMet*cos(corrMetPhi) + dilep->Pt()*cos(dilep->Phi());
 	  double pUY  = corrMet*sin(corrMetPhi) + dilep->Pt()*sin(dilep->Phi());
