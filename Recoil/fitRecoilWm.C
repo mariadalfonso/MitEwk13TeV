@@ -27,6 +27,7 @@
 #include "RooAbsPdf.h"
 #include "RooAddPdf.h"
 #include "RooHistPdf.h"
+#include "RooKeysPdf.h"
 #include "RooPlot.h"
 #include "RooFitResult.h"
 #include "RooDataHist.h"
@@ -39,6 +40,8 @@
 
 using namespace RooFit;
 using namespace std;
+
+bool do_keys=true;
 
 //=== FUNCTION DECLARATIONS ======================================================================================
 
@@ -115,6 +118,7 @@ Double_t dSigma(const TF1 *fcn, const Double_t x, const TFitResultPtr fs) {
 // perform fit of recoil component
 void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_t *ptbins, const Int_t nbins,
                 const Int_t model, const Bool_t sigOnly,
+		const vector<RooDataSet> lDataSet, const vector<RooRealVar> lVar,
                 TCanvas *c, const char *plabel, const char *xlabel,
                 Double_t *mean1Arr,   Double_t *mean1ErrArr,
                 Double_t *mean2Arr,   Double_t *mean2ErrArr,
@@ -173,6 +177,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 // oct2 binning below
   //  Double_t ptbins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,80,85,90,95,100,110,120,130,140,150,160,170,180,190,200,210,220,230,240,250,275,300};
 //   Double_t ptbins[] = {0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,6.0,7.5,10,12.5,15,17.5,20,22.5,25,27.5,30,32.5,35,37.5,40,42.5,45,47.5,50,52.5,55,57.5,60,62.5,65,67.5,70,72.5,75,77.5,80,82.5,85,87.5,90,92.5,95,97.5,100};
+
   Int_t nbins = sizeof(ptbins)/sizeof(Double_t)-1;
 
   Double_t corrbins[] = { 0, 10, 30, 50 };
@@ -211,6 +216,16 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   char hname[100];
   vector<TH1D*> hPFu1v,  hPFu1Bkgv;
   vector<TH1D*> hPFu2v,  hPFu2Bkgv;
+
+  vector<RooDataSet> lDataSetU1;
+  vector<RooDataSet> lDataSetU2;
+
+  vector<RooRealVar> vu1Var;
+  vector<RooRealVar> vu2Var;
+
+  RooWorkspace pdfsU1("pdfsU1");
+  RooWorkspace pdfsU2("pdfsU2");
+
   for(Int_t ibin=0; ibin<nbins; ibin++) {
 
     int range=100;
@@ -223,6 +238,18 @@ void fitRecoilWm(TString infoldername,  // input ntuple
     //    sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",100,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
     sprintf(hname,"hPFu2_%i",ibin);    hPFu2v.push_back(new TH1D(hname,"",100,-range,range));    hPFu2v[ibin]->Sumw2();
     sprintf(hname,"hPFu2Bkg_%i",ibin); hPFu2Bkgv.push_back(new TH1D(hname,"",50,-range,range)); hPFu2Bkgv[ibin]->Sumw2();
+
+    std::stringstream name;
+    name << "u_" << ibin;
+
+    RooRealVar u1Var(name.str().c_str(),name.str().c_str(), 0, -range-ptbins[ibin], range-ptbins[ibin]);
+    RooRealVar u2Var(name.str().c_str(),name.str().c_str(), 0, -range, range);
+
+    vu1Var.push_back(u1Var);
+    vu2Var.push_back(u2Var);
+
+    sprintf(hname,"hDataSetU1_%i",ibin);  RooDataSet dataSetU1(hname,hname,RooArgSet(u1Var)); lDataSetU1.push_back(dataSetU1);
+    sprintf(hname,"hDataSetU2_%i",ibin);  RooDataSet dataSetU2(hname,hname,RooArgSet(u2Var)); lDataSetU2.push_back(dataSetU2);
     
   }
 
@@ -338,6 +365,11 @@ void fitRecoilWm(TString infoldername,  // input ntuple
       }
       if(ipt<0) continue;
     
+      vu1Var[ipt].setVal(u1);
+      vu2Var[ipt].setVal(u2);
+      lDataSetU1[ipt].add(RooArgSet(vu1Var[ipt])); // need to add the weights
+      lDataSetU2[ipt].add(RooArgSet(vu2Var[ipt]));
+
       if(isBkgv[ifile]) {
         hPFu1Bkgv[ipt]->Fill(u1,scale1fb*lumi);
         hPFu2Bkgv[ipt]->Fill(u2,scale1fb*lumi);
@@ -347,8 +379,8 @@ void fitRecoilWm(TString infoldername,  // input ntuple
 	hPFu2v[ipt]->Fill(u2,scale1fb*lumi);
 	//	hPFu1v[ipt]->Fill(u1,scale1fbUp*lumi);
 	//	hPFu2v[ipt]->Fill(u2,scale1fbUp*lumi);
-	//        hPFu1v[ipt]->Fill(u1,scale1fbDown*lumi);
-	//        hPFu2v[ipt]->Fill(u2,scale1fbDown*lumi);
+	//	hPFu1v[ipt]->Fill(u1,scale1fbDown*lumi);
+	//	hPFu2v[ipt]->Fill(u2,scale1fbDown*lumi);
 
       }
     }
@@ -386,13 +418,11 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   TGraphErrors *grPFu2frac2=0;  Double_t pfu2Frac2[nbins],  pfu2Frac2Err[nbins];  
   TGraphErrors *grPFu2frac3=0;  Double_t pfu2Frac3[nbins],  pfu2Frac3Err[nbins];
   
-  RooWorkspace pdfsU1("pdfsU1");
-  RooWorkspace pdfsU2("pdfsU2");     
-  
   TCanvas *c = MakeCanvas("c","c",800,800);
 
   // Fitting PF-MET u1
   performFit(hPFu1v, hPFu1Bkgv, ptbins, nbins, pfu1model, sigOnly,
+	     lDataSetU1, vu1Var,
              c, "pfu1", "u_{#parallel  } [GeV]",
 	     pfu1Mean,   pfu1MeanErr,
 	     pfu1Mean2,  pfu1Mean2Err,
@@ -416,6 +446,7 @@ void fitRecoilWm(TString infoldername,  // input ntuple
   
   // Fitting PF-MET u2
   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
+	     lDataSetU2, vu2Var,
              c, "pfu2", "u_{#perp  } [GeV]",
 	     pfu2Mean,   pfu2MeanErr,
 	     pfu2Mean2,  pfu2Mean2Err,
@@ -1087,6 +1118,7 @@ void makeHTML(const TString outDir,  const Int_t nbins,
 //--------------------------------------------------------------------------------------------------
 void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_t *ptbins, const Int_t nbins,
                 const Int_t model, const Bool_t sigOnly,
+		vector<RooDataSet> lDataSet, vector<RooRealVar> lVar,
                 TCanvas *c, const char *plabel, const char *xlabel,
 		Double_t *mean1Arr,   Double_t *mean1ErrArr,
 		Double_t *mean2Arr,   Double_t *mean2ErrArr,
@@ -1425,6 +1457,31 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     // redraw the data
     dataHist.plotOn(frame,MarkerStyle(kFullCircle),MarkerSize(0.8),DrawOption("ZP"));
     
+    if(do_keys) {
+      // rookeys
+
+      lDataSet[ibin].Print();
+      name.str(""); name << "key_" << ibin ;
+      RooKeysPdf pdf_keys(name.str().c_str(),name.str().c_str(),lVar[ibin], lDataSet[ibin], RooKeysPdf::NoMirror, 2);
+
+      RooPlot* xframe  = lVar[ibin].frame(Title(Form("%s Wp_{T}=%d",plabel,ibin))) ;
+      lDataSet[ibin].plotOn(xframe) ;
+      TCanvas* c = new TCanvas("validatePDF","validatePDF",800,400) ;
+      c->cd();
+      pdf_keys.plotOn(xframe,LineColor(kBlue)) ;
+      xframe->Draw() ;
+
+      c->SaveAs(Form("%s_%d_datasetW.png",plabel,ibin));
+
+      name.str("");
+
+      pdf_keys.plotOn(frame,LineColor(kRed)) ;
+
+      wksp->import(pdf_keys);
+      wksp->Print();
+
+    }
+
     sprintf(pname,"%sfit_%i",plabel,ibin);
     sprintf(ylabel,"Events / %.1f GeV",hv[ibin]->GetBinWidth(1));
     sprintf(binlabel,"%i < p_{T}(W) < %i",(Int_t)ptbins[ibin],(Int_t)ptbins[ibin+1]);
