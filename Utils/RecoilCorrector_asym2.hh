@@ -21,6 +21,7 @@
 #include "RooDataSet.h"
 #include "RooAbsPdf.h"
 #include "RooAddPdf.h"
+#include "RooKeysPdf.h"
 #include "RooProdPdf.h"
 #include "RooPlot.h"
 #include "RooFitResult.h"
@@ -52,13 +53,14 @@ public:
   RecoilCorrector(string iNameZDat, int iSeed=0xDEADBEEF);
   RecoilCorrector(string iNameZDat1, string iPrefix, int iSeed=0xDEADBEEF);
     
+  void loadRooWorkspacesMCtoCorrectKeys(string iNameFile);
   void loadRooWorkspacesMCtoCorrect(string iNameFile);
   void loadRooWorkspacesMC(string iNameFile);
   void loadRooWorkspacesData(string iNameFile);
   
   void CorrectType0(double &pfmet, double &pfmetphi,double iGenPt,double iGenPhi,double iLepPt,double iLepPhi,double &iU1,double &iU2,double iFluc,double iScale=0,int njet=0);
   void CorrectType2(double &pfmet, double &pfmetphi,double iGenPt,double iGenPhi,double iLepPt,double iLepPhi,double &iU1,double &iU2,double iFluc,double iScale=0,int njet=0);
-  void CorrectInvCdf(double &pfmet, double &pfmetphi,double iGenPt,double iGenPhi,double iLepPt,double iLepPhi,double &iU1,double &iU2,double iFluc,double iScale=0,int njet=0);
+  void CorrectInvCdf(double &pfmet, double &pfmetphi,double iGenPt,double iGenPhi,double iLepPt,double iLepPhi,double &iU1,double &iU2,double iFluc,double iScale=0,int njet=0, bool dokeys=false);
   void CorrectFromToys(double &pfmet, double &pfmetphi,double iGenPt,double iGenPhi,double iLepPt,double iLepPhi,double &iU1,double &iU2,double iFluc,double iScale=0,int njet=0);
   void addDataFile(std::string iNameDat);
   void addMCFile  (std::string iNameMC);
@@ -218,6 +220,7 @@ protected:
   RooWorkspace* pdfsU1zMC, pdfsU2zMC;
   RooWorkspace* pdfsU1sigMC, pdfsU2sigMC;
   int fId; int fJet;
+  bool dokeys;
   
   RooWorkspace rooWksDataU1;
   RooWorkspace rooWksMCU1;
@@ -325,6 +328,36 @@ void RecoilCorrector::loadRooWorkspacesMCtoCorrect(std::string iFName){
 }
 
 
+void RecoilCorrector::loadRooWorkspacesMCtoCorrectKeys(std::string iFName){
+
+  //  RooKeysPdf::key_44
+
+  TFile *lFile  = new TFile((iFName+"pdfsU1.root").c_str());
+  rooWMCtoCorr[0] = (RooWorkspace*) lFile->Get("pdfsU1");
+  lFile->Delete();
+  TFile *lFile2  = new TFile((iFName+"pdfsU2.root").c_str());
+  rooWMCtoCorr[1] = (RooWorkspace*) lFile2->Get("pdfsU2");
+  lFile2->Delete();
+  for(uint i = 0; i < vZPtBins.size()-1; ++i){
+    std::stringstream name;
+    name << "key_" << i ;
+    //    RooAbsPdf* pdf1 = (RooKeysPdf*) lFile->Get(name.str().c_str());
+    //    RooAbsPdf* pdf2 = (RooKeysPdf*) lFile2->Get(name.str().c_str());
+    RooAbsPdf* pdf1 = (RooKeysPdf*) rooWMCtoCorr[0]->pdf(name.str().c_str());
+    RooAbsPdf* pdf2 = (RooKeysPdf*) rooWMCtoCorr[1]->pdf(name.str().c_str());
+    name.str(""); name << "u_" << i;
+    //    name.str(""); name << "u";
+    RooRealVar* myX1 = (RooRealVar*) rooWMCtoCorr[0]->var(name.str().c_str());
+    RooRealVar* myX2 = (RooRealVar*) rooWMCtoCorr[1]->var(name.str().c_str());
+    RooAbsReal *cdfU1 = pdf1->createCdf(*myX1);
+    rooWMCtoCorr[0]->import(*cdfU1, RooFit::Silence());
+    RooAbsReal *cdfU2 = pdf2->createCdf(*myX2);
+    rooWMCtoCorr[1]->import(*cdfU2, RooFit::Silence());
+  }
+  std::cout << "Loaded WorkspacesMCtoCorrect with keys"<< std::endl;
+}
+
+
 
 void RecoilCorrector::addDataFile(std::string iNameData) {
   readRecoil(fD1U1Fit,fD1U1RMSSMFit,fD1U1RMS1Fit,fD1U1RMS2Fit,fD1U2Fit,fD1U2RMSSMFit,fD1U2RMS1Fit,fD1U2RMS2Fit,iNameData,"fcnPF",0);
@@ -379,7 +412,8 @@ void RecoilCorrector::CorrectType2(double &met, double &metphi, double lGenPt, d
                iU1,iU2,iFluc,iScale);
 }
 
-void RecoilCorrector::CorrectInvCdf(double &met, double &metphi, double lGenPt, double lGenPhi, double lepPt, double lepPhi,double &iU1,double &iU2,double iFluc,double iScale,int njet) {  
+void RecoilCorrector::CorrectInvCdf(double &met, double &metphi, double lGenPt, double lGenPhi, double lepPt, double lepPhi,double &iU1,double &iU2,double iFluc,double iScale,int njet, bool useKeys) {
+  dokeys=useKeys;
   fJet = njet; if(njet > 2) fJet = 2;
   if(fJet >= int(fF1U1Fit.size())) fJet = 0; 
 
@@ -839,37 +873,59 @@ void RecoilCorrector::metDistributionInvCdf(double &iMet,double &iMPhi,double iG
   //  double p2Charge        = pU2Diff/fabs(pU2Diff);                     // not used
   //  double pTU1Diff        = pU1Diff;                                   // not used
 
-  
-  
+
   std::stringstream name;
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfDataU1 = rooWData[0]->pdf(name.str().c_str()); name.str("");
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfMCU1 = rooWMC[0]->pdf(name.str().c_str()); name.str("");
-  name << "sig_" << iBin;
-  RooAbsPdf *thisPdfMCU1toCorr = rooWMCtoCorr[0]->pdf(name.str().c_str()); name.str("");
 
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfDataU1 = rooWData[0]->function(name.str().c_str()); name.str("");
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfMCU1 = rooWMC[0]->function(name.str().c_str()); name.str("");
-  name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
-  RooAbsReal *thisCdfMCU1toCorr = rooWMCtoCorr[0]->function(name.str().c_str()); name.str("");
 
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfDataU2 = rooWData[1]->pdf(name.str().c_str()); name.str("");
   name << "sig_" << iBin;
   RooAbsPdf *thisPdfMCU2 = rooWMC[1]->pdf(name.str().c_str()); name.str("");
-  name << "sig_" << iBin;
-  RooAbsPdf *thisPdfMCU2toCorr = rooWMCtoCorr[1]->pdf(name.str().c_str()); name.str("");
 
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfDataU2 = rooWData[1]->function(name.str().c_str()); name.str("");
   name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
   RooAbsReal *thisCdfMCU2 = rooWMC[1]->function(name.str().c_str()); name.str("");
-  name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
-  RooAbsReal *thisCdfMCU2toCorr = rooWMCtoCorr[1]->function(name.str().c_str()); name.str("");
-  
+
+  RooAbsPdf *thisPdfMCU1toCorr;
+  RooAbsReal *thisCdfMCU1toCorr;
+  RooAbsPdf *thisPdfMCU2toCorr;
+  RooAbsReal *thisCdfMCU2toCorr;
+
+  if(!dokeys) {
+
+    name << "sig_" << iBin;
+    thisPdfMCU1toCorr = rooWMCtoCorr[0]->pdf(name.str().c_str()); name.str("");
+
+    name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+    thisCdfMCU1toCorr = rooWMCtoCorr[0]->function(name.str().c_str()); name.str("");
+    name << "sig_" << iBin;
+    thisPdfMCU2toCorr = rooWMCtoCorr[1]->pdf(name.str().c_str()); name.str("");
+    name << "sig_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+    thisCdfMCU2toCorr = rooWMCtoCorr[1]->function(name.str().c_str()); name.str("");
+
+  } else {
+
+    name << "key_" << iBin;
+    thisPdfMCU1toCorr = rooWMCtoCorr[0]->pdf(name.str().c_str()); name.str("");
+
+    name << "key_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+    thisCdfMCU1toCorr = rooWMCtoCorr[0]->function(name.str().c_str()); name.str("");
+    name << "key_" << iBin;
+    thisPdfMCU2toCorr = rooWMCtoCorr[1]->pdf(name.str().c_str()); name.str("");
+    name << "key_" << iBin <<"_cdf_Int[u_"<< iBin<< "_prime|CDF]_Norm[u_"<< iBin<< "_prime]";
+    thisCdfMCU2toCorr = rooWMCtoCorr[1]->function(name.str().c_str()); name.str("");
+
+  }
+
   std::stringstream varName;
   varName.str("");varName << "u_"<<iBin;
   RooRealVar* myXdU1 =  (RooRealVar*) rooWData[0]->var(varName.str().c_str());
