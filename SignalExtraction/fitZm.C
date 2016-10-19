@@ -134,8 +134,8 @@ void fitZm(const TString  outputDir,   // output directory
 ) {
   gBenchmark->Start("fitZm");
 
-  bool doRecoilplot=false;
-
+  bool doRecoilplot=true;
+  bool doKeys=false;
 
   //--------------------------------------------------------------------------------------------------------------
   // Settings 
@@ -163,12 +163,13 @@ void fitZm(const TString  outputDir,   // output directory
 
   const TString directory("/afs/cern.ch/user/d/dalfonso/public/WZ/oct7");
 
-// // Puppi Corrections
+//////// Puppi Corrections
   RecoilCorrector *recoilCorr = new  RecoilCorrector("","");
   recoilCorr->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi/",directory.Data()));
   recoilCorr->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg/",directory.Data()));
   recoilCorr->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi/",directory.Data()));
 
+////////  rapidity binned
   RecoilCorrector *recoilCorr_c = new  RecoilCorrector("","");
   recoilCorr_c->loadRooWorkspacesMCtoCorrect(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
   recoilCorr_c->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05/",directory.Data()));
@@ -184,7 +185,22 @@ void fitZm(const TString  outputDir,   // output directory
   recoilCorr_f->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap1/",directory.Data()));
   recoilCorr_f->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
 
-    
+//////// Keys rapidity binned
+  RecoilCorrector *recoilCorrKeys_c = new  RecoilCorrector("","");
+  recoilCorrKeys_c->loadRooWorkspacesMCtoCorrectKeys(Form("%s/ZmmMCPuppi_keys_rap05/",directory.Data()));
+  recoilCorrKeys_c->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05/",directory.Data()));
+  recoilCorrKeys_c->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05/",directory.Data()));
+
+  RecoilCorrector *recoilCorrKeys_t = new  RecoilCorrector("","");
+  recoilCorrKeys_t->loadRooWorkspacesMCtoCorrectKeys(Form("%s/ZmmMCPuppi_keys_rap05-1/",directory.Data()));
+  recoilCorrKeys_t->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap05-1/",directory.Data()));
+  recoilCorrKeys_t->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap05-1/",directory.Data()));
+
+  RecoilCorrector *recoilCorrKeys_f = new  RecoilCorrector("","");
+  recoilCorrKeys_f->loadRooWorkspacesMCtoCorrectKeys(Form("%s/ZmmMCPuppi_keys_rap1/",directory.Data()));
+  recoilCorrKeys_f->loadRooWorkspacesData(Form("%s/ZmmDataPuppi_bkg_rap1/",directory.Data()));
+  recoilCorrKeys_f->loadRooWorkspacesMC(Form("%s/ZmmMCPuppi_rap1/",directory.Data()));
+
   // Load the Z data and Z MC Pt spectra
   TFile *_rat1 = new TFile("shapeDiff/zmm_PDFUnc.root");
   TH1D *hh_mc;// = new TH1D("hh_diff","hh_diff",75,0,150);
@@ -624,11 +640,19 @@ void fitZm(const TString  outputDir,   // output directory
 	      }
 	      double w2 = 1.0;//hh_diff->GetBinContent(bin);
 
-	      //MARIA: to use the eta binned recoil, passing met and dileptonPt not corrected for lepton scale
-	      if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
-	      if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
-	      if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
-	      //	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      if(doKeys) {
+		//MARIA: to use the eta binned recoil, passing met and dileptonPt not corrected for lepton scale
+		if(fabs(dl.Eta())<0.5) recoilCorrKeys_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0,doKeys);
+		if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorrKeys_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0,doKeys);
+		if(fabs(dl.Eta())>1) recoilCorrKeys_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0,doKeys);
+		//	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      } else {
+		//MARIA: to use the eta binned recoil, passing met and dileptonPt not corrected for lepton scale
+		if(fabs(dl.Eta())<0.5) recoilCorr_c->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+		if(fabs(dl.Eta())>=0.5 && fabs(dl.Eta())<=1 ) recoilCorr_t->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+		if(fabs(dl.Eta())>1) recoilCorr_f->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+		//	      recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,dilep->Pt(),dilep->Phi(),pU1,pU2,0,0,0);
+	      }
 
 	      //recoilCorr->CorrectInvCdf(corrMet,corrMetPhi,genVPt,genVPhi,tl1Pt,tl1Pt,pU1,pU2,0,0,0);
 //               recoilCorr->CorrectFromToys(corrMet,corrMetPhi,genVPt,genVPhi,dl.Pt(),dl.Phi(),pU1,pU2,0,0,0);
