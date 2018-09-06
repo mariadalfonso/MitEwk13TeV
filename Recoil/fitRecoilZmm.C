@@ -44,11 +44,14 @@
 #include "Math/MinimizerOptions.h"
 #include "Math/Minimizer.h"
 #include "RooConstVar.h"
+#include "RooMinuit.h"
 
 #endif
 
 using namespace RooFit;
 using namespace std;
+
+bool doLikelihoodScan=false;
 
 bool do_keys=false;
 bool do_5TeV=false;
@@ -156,6 +159,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
                 Double_t *frac3Arr,  Double_t *frac3ErrArr,
 		Double_t *chi2Arr,   Double_t *chi2ErrArr,
                 RooWorkspace *workspace,
+		const char *outputname,
 		int etaBinCategory);
                 
 void performFitFM(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_t *ptbins, const Int_t nbins,
@@ -232,6 +236,10 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
       fnamev.push_back("/eos/cms/store/user/sabrandt/StandardModel/FlatNtuples/NewBacon_MediumEleID/Zmumu/ntuples/top_select.raw.root"); isBkgv.push_back(kTRUE);
       fnamev.push_back("/eos/cms/store/user/sabrandt/StandardModel/FlatNtuples/NewBacon_MediumEleID/Zmumu/ntuples/ewk_select1.root"); isBkgv.push_back(kTRUE);
       fnamev.push_back("/eos/cms/store/user/sabrandt/StandardModel/FlatNtuples/NewBacon_MediumEleID/Zmumu/ntuples/boson_select.root"); isBkgv.push_back(kTRUE);
+
+      // RAW puppi
+      ///eos/cms/store/user/sabrandt/StandardModel/FlatNtuples/rawPuppiNtuples
+
     }
     // used for nov26
     //    fnamev.push_back("/afs/cern.ch/work/a/arapyan/public/flat_ntuples/Zmumu/ntuples/top_select.raw.root"); isBkgv.push_back(kTRUE);
@@ -595,6 +603,9 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
   
   TCanvas *c = MakeCanvas("c","c",800,800);
 
+  char outpdfname[50];
+  sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU1");
+
   // Fitting PF-MET u1
   performFit(hPFu1v, hPFu1Bkgv, ptbins, nbins, pfu1model, sigOnly,
 	     lDataSetU1, vu1Var,
@@ -610,16 +621,15 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
 	     pfu1Frac3,  pfu1Frac3Err,
 	     pfu1chi2,   pfu1chi2Err,
 	     &pdfsU1,
+	     outpdfname,
 	     etaBinCategory);
-
           
   std::cout << "writing" << std::endl;
 
-  char outpdfname[50];
+  pdfsU1.writeToFile(outpdfname,kFALSE);
 
-  sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU1");
-  pdfsU1.writeToFile(outpdfname);
-  
+  sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU2");
+
   // Fitting PF-MET u2         
   performFit(hPFu2v, hPFu2Bkgv, ptbins, nbins, pfu2model, sigOnly,
 	     lDataSetU2, vu2Var,
@@ -635,12 +645,11 @@ void fitRecoilZmm(TString infilename="/data/blue/Bacon/Run2/wz_flat/Zmumu/ntuple
 	     pfu2Frac3,  pfu2Frac3Err,
 	     pfu2chi2,   pfu2chi2Err,
 	     &pdfsU2,
+	     outpdfname,
 	     etaBinCategory);
 
-  sprintf(outpdfname,"%s/%s.root",outputDir.Data(),"pdfsU2");
-  pdfsU2.writeToFile(outpdfname);
+  pdfsU2.writeToFile(outpdfname,kFALSE);
 
- 
   //--------------------------------------------------------------------------------------------------------------
   // Make plots 
   //==============================================================================================================  
@@ -1243,6 +1252,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
 		Double_t *frac3Arr,  Double_t *frac3ErrArr,
 		Double_t *chi2Arr,   Double_t *chi2ErrArr,
 		RooWorkspace *wksp,
+		const char *outputname,
 		int etaBinCategory
 ) {
   char lumi[50];
@@ -1338,9 +1348,9 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     //
     name.str(""); name << "mean1_" << ibin;
     RooRealVar mean1(name.str().c_str(),name.str().c_str(),
-                    hv[ibin]->GetMean(),
-                    hv[ibin]->GetXaxis()->GetXmin()+50,
-                    hv[ibin]->GetXaxis()->GetXmax()-50);
+                     hv[ibin]->GetMean(),
+                     hv[ibin]->GetXaxis()->GetXmin()+50,
+                     hv[ibin]->GetXaxis()->GetXmax()-50);
     name.str(""); name << "mean2_" << ibin;
     RooRealVar mean2(name.str().c_str(),name.str().c_str(),
 		     hv[ibin]->GetMean(),
@@ -1359,11 +1369,11 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     //    RooFormulaVar * mean3= new RooFormulaVar("meanFrac","@0 * @1",RooArgSet(mean1,mean3f));
 
     name.str(""); name << "sigma1_" << ibin;
-    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0,2.5*(hv[ibin]->GetRMS()));
+    RooRealVar sigma1(name.str().c_str(),name.str().c_str(),0.3*(hv[ibin]->GetRMS()),0.01,2.5*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma2_" << ibin;
-    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),1.0*(hv[ibin]->GetRMS()),0.,4.5*(hv[ibin]->GetRMS()));
+    RooRealVar sigma2(name.str().c_str(),name.str().c_str(),1.0*(hv[ibin]->GetRMS()),0.01,4.5*(hv[ibin]->GetRMS()));
     name.str(""); name << "sigma3_" << ibin;
-    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),0.,9*hv[ibin]->GetRMS());
+    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),0.01,9*hv[ibin]->GetRMS());
     //    RooRealVar sigma3(name.str().c_str(),name.str().c_str(),2.0*(hv[ibin]->GetRMS()),10 ,std::min(int(9*hv[ibin]->GetRMS()),100));
 
     /*
@@ -1384,8 +1394,13 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     // fraction
     name.str(""); name << "frac2_" << ibin;
     RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.15,0.85);
+    //    RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.30,0.9);
+    //    RooRealVar frac2(name.str().c_str(),name.str().c_str(),0.5,0.3,0.85);
     name.str(""); name << "frac3_" << ibin;
-    RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0,0.15);
+    RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0.,0.15);
+    //    RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0.01,0.4);
+    //    RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0.01,0.15);
+    //    RooRealVar frac3(name.str().c_str(),name.str().c_str(),0.05,0.01,0.3);
 
     if(model==2) {
       frac2.setVal(0.5);
@@ -1425,9 +1440,9 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     */
 
     if(string(plabel)==string("pfu2")) {
-      mean1.setVal(0); mean1.setConstant(kTRUE);
-      mean2.setVal(0); mean2.setConstant(kTRUE);
-      mean3.setVal(0); mean3.setConstant(kTRUE);
+      mean1.setVal(0); mean1.setRange(-5.,5.); mean1.setConstant(kTRUE);
+      mean2.setVal(0); mean2.setRange(-5.,5.); mean2.setConstant(kTRUE);
+      mean3.setVal(0); mean3.setRange(-5.,5.); mean3.setConstant(kTRUE);
     }
 
     name.str(""); name << "gauss1_" << ibin;
@@ -1618,7 +1633,8 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     
     //     std::stringstream name;
     name.str("");  name << "modelpdf_" << ibin << std::endl;
-    RooAddPdf modelpdf(name.str().c_str(),name.str().c_str(),parts,yields);name.str(""); 
+    //    RooAddPdf modelpdf(name.str().c_str(),name.str().c_str(),parts,yields,kTRUE);name.str("");
+    RooAddPdf modelpdf(name.str().c_str(),name.str().c_str(),parts,yields);name.str("");
     
     std::cout << "name = " << name.str().c_str() << std::endl;
     
@@ -1629,7 +1645,7 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
     std::cout << "sigma2 = " << sigma2.getVal() << std::endl;
 
     if(ibin>0) std::cout << "sigma max = " << 1.5*hv[ibin-1]->GetRMS() << " " << 1.8*hv[ibin-1]->GetRMS() << std::endl;
-    
+
     //
     // Perform fit
     //
@@ -1642,9 +1658,11 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
 				    Minimizer("Minuit2","minimize"),
 				    ExternalConstraints(constGauss1),ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
 				    //				    ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
+				    RooFit::Minos(),
 				    RooFit::Strategy(2),
 				    RooFit::Save());
     }
+
 
     RooFitResult *fitResult=0;
     fitResult = modelpdf.fitTo(dataHist,
@@ -1652,18 +1670,149 @@ void performFit(const vector<TH1D*> hv, const vector<TH1D*> hbkgv, const Double_
 			       Minimizer("Minuit2","minimize"),
 			       ExternalConstraints(constGauss1),ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
 			       //			       ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
+			       RooFit::Minos(),
 			       RooFit::Strategy(2),
 	                       RooFit::Save());
 
     if(fitResult->status()>0) {
       fitResult = modelpdf.fitTo(dataHist,
 				 NumCPU(4),
+				 //				 Minimizer("Minuit2","minimize"),
 				 Minimizer("Minuit2","scan"),
 				 ExternalConstraints(constGauss1),ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
 				 //				 ExternalConstraints(constGauss2),ExternalConstraints(constGauss3),
+				 RooFit::Minos(),
 				 RooFit::Strategy(2),
 				 RooFit::Save());
     }
+
+
+
+  /*
+  //// Add the likelihood
+  */
+
+    if(doLikelihoodScan && (ibin==5 || ibin==15 || ibin==25) ) {
+
+      TCanvas* c_like = new TCanvas("c_like","c_like",800,800);
+
+      //    RooDataHist dataHist("dataHist","dataHist",RooArgSet(u),hv[ibin]);
+      RooAbsReal* nll = modelpdf.createNLL(dataHist,NumCPU(4)) ;
+
+      RooMinuit(*nll).migrad() ;
+
+      // mean1,  mean2,  mean3
+      // sigma1,  sigma2,  sigma3
+      // frac2, frac3
+
+      // mean1
+      RooPlot* frame_mean1 = mean1.frame(Bins(100),Range(hv[ibin]->GetXaxis()->GetXmin()+50,hv[ibin]->GetXaxis()->GetXmax()-50),"mean1");
+      if(string(plabel)==string("pfu2")) frame_mean1->SetAxisRange(-5., 5., "X");
+      //      RooPlot* frame_mean1 = mean1.frame(Bins(1000),Range(0.5*mean1.getVal(),1.5*mean1.getVal()),"mean1");
+      RooAbsReal* nll_mean1 = nll->createProfile(mean1) ;
+      nll_mean1->plotOn(frame_mean1,LineColor(kRed)) ; frame_mean1->SetMinimum(0); frame_mean1->SetMaximum(100);
+
+      TString plotname;
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_mean1_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_mean1_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_mean1->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      // mean2
+      RooPlot* frame_mean2 = mean2.frame(Bins(100),Range(hv[ibin]->GetXaxis()->GetXmin()+30,hv[ibin]->GetXaxis()->GetXmax()-30),"mean2");
+      if(string(plabel)==string("pfu2")) frame_mean2->SetAxisRange(-5., 5., "X");
+      //      RooPlot* frame_mean2 = mean2.frame(Bins(1000),Range(0.5*mean2.getVal(),1.5*mean2.getVal()),"mean2");
+      RooAbsReal* nll_mean2 = nll->createProfile(mean2) ;
+      nll_mean2->plotOn(frame_mean2,LineColor(kRed)) ;   frame_mean2->SetMinimum(0); frame_mean2->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_mean2_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_mean2_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_mean2->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      // mean3
+      RooPlot* frame_mean3 = mean3.frame(Bins(100),Range(hv[ibin]->GetXaxis()->GetXmin()+50,hv[ibin]->GetXaxis()->GetXmax()-50),"mean3");
+      if(string(plabel)==string("pfu2")) frame_mean3->SetAxisRange(-5., 5., "X");
+      //      RooPlot* frame_mean3 = mean2.frame(Bins(1000),Range(0.5*mean2.getVal(),1.5*mean2.getVal()),"mean3");
+      RooAbsReal* nll_mean3 = nll->createProfile(mean3) ;
+      nll_mean3->plotOn(frame_mean3,LineColor(kRed)) ;   frame_mean3->SetMinimum(0); frame_mean3->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_mean3_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_mean3_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_mean3->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      ////
+      ////
+      ////
+      ////
+
+      // sigma 1
+      RooPlot* frame_sigma1 = sigma1.frame(Bins(100),Range(0.01*(hv[ibin]->GetRMS()),2.5*(hv[ibin]->GetRMS())),"sigma1");
+      //      RooPlot* frame_sigma1 = sigma1.frame(Bins(1000),Range(0,5*sigma1.getVal()),"sigma1");
+      RooAbsReal* nll_sigma1 = nll->createProfile(sigma1) ;
+      nll_sigma1->plotOn(frame_sigma1,LineColor(kRed)) ; frame_sigma1->SetMinimum(0); frame_sigma1->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_sigma1_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_sigma1_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_sigma1->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      // sigma 2
+      RooPlot* frame_sigma2 = sigma2.frame(Bins(100),Range(0.01*(hv[ibin]->GetRMS()),4.5*(hv[ibin]->GetRMS())),"sigma2");
+      //      RooPlot* frame_sigma2 = sigma2.frame(Bins(1000),Range(0,10*sigma2.getVal()),"sigma2");
+      RooAbsReal* nll_sigma2 = nll->createProfile(sigma2) ;
+      nll_sigma2->plotOn(frame_sigma2,LineColor(kRed)) ;  frame_sigma2->SetMinimum(0); frame_sigma2->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_sigma2_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_sigma2_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_sigma2->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      // sigma 3
+      RooPlot* frame_sigma3 = sigma3.frame(Bins(100),Range(0.5*(hv[ibin]->GetRMS()),9.*(hv[ibin]->GetRMS())),"sigma3");
+      //      RooPlot* frame_sigma3 = sigma3.frame(Bins(1000),Range(0,10*sigma3.getVal()),"sigma3");
+      RooAbsReal* nll_sigma3 = nll->createProfile(sigma3) ;
+      nll_sigma3->plotOn(frame_sigma3,LineColor(kRed)) ; frame_sigma3->SetMinimum(0);  frame_sigma3->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_sigma3_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_sigma3_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_sigma3->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      ////
+      ////
+      ////
+      ////
+
+      // fraction 2
+      RooPlot* frame_frac2 = frac2.frame(Bins(100),Range(0.,1.),"frac2");
+      RooAbsReal* nll_frac2 = nll->createProfile(frac2) ;
+      nll_frac2->plotOn(frame_frac2,LineColor(kRed)) ;  frame_frac2->SetMinimum(0); frame_frac2->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_frac2_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_frac2_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_frac2->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+      // fraction 3
+      RooPlot* frame_frac3 = frac3.frame(Bins(100),Range(0.,1.),"frac3");
+      RooAbsReal* nll_frac3 = nll->createProfile(frac3) ;
+      nll_frac3->plotOn(frame_frac3,LineColor(kRed)) ;  frame_frac3->SetMinimum(0); frame_frac3->SetMaximum(100);
+
+      if(string(plabel)==string("pfu1")) plotname=Form("LogLikelihood_frac3_Zpt%.1f_u1.png",ptbins[ibin]);
+      if(string(plabel)==string("pfu2")) plotname=Form("LogLikelihood_frac3_Zpt%.1f_u2.png",ptbins[ibin]);
+      c_like->Clear();frame_frac3->Draw();c_like->Update();c_like->SaveAs(plotname);
+
+    }
+
+  /*
+  //// end the likelihood
+  */
+
+    char rname[100];
+    if(string(plabel)==string("pfu1")) sprintf(rname,"fitResultU1_%i",ibin);
+    if(string(plabel)==string("pfu2")) sprintf(rname,"fitResultU2_%i",ibin);
+
+    fitResult->SetName(rname);
+
+    TFile *lFile = TFile::Open(outputname,"UPDATE");
+    fitResult->Write();
+    lFile->Write();
+    lFile->Close();
 
     c->SetFillColor(kWhite);
     if(fitResult->status()>0) c->SetFillColor(kYellow);
